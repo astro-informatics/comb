@@ -21,7 +21,7 @@ OPT = $(OPTPGPLOT) -m64
 
 # ======== LINKS ========
 
-PROGDIR = /home/jdm57/src
+PROGDIR = /Users/mcewen/src
 
 HPIXDIR = $(PROGDIR)/Healpix
 HPIXLIB = $(HPIXDIR)/lib
@@ -34,7 +34,7 @@ S2LIBNM= s2
 S2INC  = $(S2DIR)/include
 S2DOC  = $(S2DIR)/doc
 
-COMBDIR = $(PROGDIR)/comb-1.0
+COMBDIR = $(PROGDIR)/comb
 COMBLIB = $(COMBDIR)/lib
 COMBLIBNM = comb
 COMBINC = $(COMBDIR)/include
