@@ -1,0 +1,34 @@
+# Localised source positions
+# Written by s2fil-0.1
+#
+n_sources=       6
+#
+amplitude=  0.9152
+alpha=      0.5512
+beta=       1.3202
+gamma=      0.0000
+#
+amplitude=  1.0461
+alpha=      4.9114
+beta=       0.0122
+gamma=      1.2566
+#
+amplitude=  0.9165
+alpha=      0.8206
+beta=       1.1857
+gamma=      1.2566
+#
+amplitude=  0.8839
+alpha=      0.2695
+beta=       1.8825
+gamma=      1.2566
+#
+amplitude=  1.0298
+alpha=      3.0007
+beta=       1.4180
+gamma=      2.5133
+#
+amplitude=  0.8763
+alpha=      1.5922
+beta=       1.9192
+gamma=      3.7699
