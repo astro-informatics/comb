@@ -1,0 +1,51 @@
+# COMB_CSIM input parmater file
+#
+# Jason McEwen
+# August 2004
+
+# Healpix parameters
+nside = 128
+lmax = 256
+mmax = 256
+
+# Compact object parameters
+comb_seed = 1
+comb_type = butterfly
+comb_num = 10
+comb_amp_lower = 2.0e0
+comb_amp_upper = 2.0e0
+comb_dil_lower = 0.1e0
+comb_dil_upper = 0.1e0
+comb_dil_grid_num = 1
+comb_gamma_grid_num = 1
+
+# Primordial CMB parameters
+cmb_status = .true.
+cmb_seed = 1
+cmb_cl_file = data_in/wmap_comb_tt_powspec_3yr_v2.txt
+
+# Beam parameters
+beam_status = .true.
+beam_gaussian = .true.
+beam_fwhm = 13.0e0
+beam_cl_file = data_in/wmap_w1_ampl_bl_3yr_v2.txt
+
+# Noise parameters
+noise_status = .true.
+noise_full_sky = .false.
+noise_seed = 1
+noise_std = 0.05
+noise_sigma0 = 2.24e0
+noise_nobs_file = data_in/wmap_imap_r9_3yr_W1_v2.fits
+noise_nobs_extension = 2
+
+# Output files
+output_file_csky = data_out/csky.fits
+output_file_obj = data_out/obj.fits
+output_file_obj_mother = data_out/obj_mother.fits
+output_file_cmb = data_out/cmb.fits
+output_file_wnoise = data_out/wnoise.fits 
+output_file_wnoise_nobs = data_out/wnoise_nobs.fits 
+output_file_wnoise_std = data_out/wnoise_std.fits 
+output_file_param = data_out/param_out.par
+
