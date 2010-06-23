@@ -31,6 +31,7 @@ module comb_obj_mod
     comb_obj_init, &
     comb_obj_free, &
     comb_obj_conv, &
+    comb_obj_compute_map, &
     comb_obj_compute_alm, &
     comb_obj_write_sky, &
     comb_obj_get_init, &
@@ -52,6 +53,7 @@ module comb_obj_mod
   interface comb_obj_init
      module procedure &
        comb_obj_init_template, &
+       comb_obj_init_template_alm, &
        comb_obj_init_mother,   &
        comb_obj_init_copy
   end interface
@@ -77,6 +79,7 @@ module comb_obj_mod
      real(s2_sp) :: alpha=0.0e0, beta=0.0e0, gamma=0.0e0
      character(len=S2_STRING_LEN) :: name = 'Not specified'
      logical :: beam_status = .false.
+     logical :: harmonic_tmpl = .false.
   end type comb_obj
   
 
@@ -188,6 +191,91 @@ module comb_obj_mod
 
 
     !--------------------------------------------------------------------------
+    ! comb_obj_init_template_alm
+    !
+    !! Initialise an obj from a template function defined in harmonic space.
+    !!
+    !! Notes:
+    !!   - Dilation is not supported for templates defined in harmonic space.
+    !!
+    !! Variables:
+    !!   - template_fun: Template function to evaluate in harmonic space.
+    !!   - lmax: Harmonic band-limit.
+    !!   - azisum: Logical specifying whether the template function is 
+    !!     azimuthally symmetric, in which case non-zero harmonic 
+    !!     cofficients are computed for m=0 only.
+    !!   - amplitude: Amplitude of the obj (i.e. value to scale the template 
+    !!     function by).
+    !!   - [alpha]: Alpha Euler rotation angle applied to rotate the template 
+    !!     funciton defined on the sphere.
+    !!   - [beta]: Beta Euler rotation angle applied to rotate the template 
+    !!     funciton defined on the sphere.
+    !!   - [gamma]: Gamma Euler rotation angle applied to rotate the template 
+    !!     funciton defined on the sphere.
+    !!   - [name]: String specifying name of object.
+    !!   - [param]: Parameter array specifying analytic parameters for the
+    !!     function to be evaluated.
+    !!   - obj: Initialised obj.
+    !
+    !! @author J. D. McEwen
+    !! @version Under svn version control.
+    !
+    ! Revisions:
+    !   June 2010 - Written by Jason McEwen
+    !--------------------------------------------------------------------------
+
+    function comb_obj_init_template_alm(template_fun, lmax, azisym, &
+      amplitude, alpha, beta, gamma, name, param) result(obj)
+
+      real(s2_sp), intent(in) :: amplitude
+      integer, intent(in) :: lmax
+      real(s2_sp), intent(in), optional :: alpha, beta, gamma
+      logical, intent(in) :: azisym
+      character(len=*), intent(in), optional :: name
+      real(s2_sp), intent(in), optional :: param(:)
+      type(comb_obj) :: obj
+      interface 
+         function template_fun(el, m, param) result(val)
+           use s2_types_mod
+           integer, intent(in) :: el, m
+           real(s2_sp), intent(in), optional :: param(:)
+           real(s2_sp) :: val
+         end function template_fun
+      end interface
+      
+      ! Check object not already initialised.
+      if(obj%init) then
+        call comb_error(COMB_ERROR_INIT, 'comb_obj_init_template_alm')
+        return
+      end if
+
+      ! Initialise sky.
+      obj%sky = s2_sky_init(template_fun, lmax, lmax, azisym, param=param)
+
+      ! Set object attributes.
+      obj%amplitude = amplitude
+      if(present(name)) obj%name = name
+      if(present(alpha)) obj%alpha = alpha
+      if(present(beta)) obj%beta = beta
+      if(present(gamma)) obj%gamma = gamma
+
+      ! Scale so have correct amplitude.
+      call s2_sky_scale(obj%sky, obj%amplitude)
+
+      ! Perform rotation if required.
+      if(present(alpha) .and. present(beta) .and. present(gamma)) then
+         call s2_sky_rotate_alm(obj%sky, &
+              real(alpha,s2_dp), real(beta,s2_dp), real(gamma,s2_dp), azisym)
+      end if
+
+      ! Set object as initialised.
+      obj%init = .true.
+      obj%harmonic_tmpl = .true.
+
+    end function comb_obj_init_template_alm
+
+
+    !--------------------------------------------------------------------------
     ! comb_obj_init_mother
     !
     !! Initialise obj from a mother obj.  The initialised obj is a scaled, 
@@ -271,8 +359,16 @@ module comb_obj_mod
          obj%amplitude = mother%amplitude
       end if
 
+      ! Set harmonic template flag.
+      obj%harmonic_tmpl = mother%harmonic_tmpl
+
       ! Dilate.
       ! Only 1D dilation for now.
+      ! Dilation not currently supported for objects defined in harmonic space.
+      if(obj%harmonic_tmpl .and. abs(dilation - 1e0) > TOL) then
+         call comb_error(COMB_ERROR_OBJ_DILATION_INVALID, 'comb_obj_init_mother', &
+              comment_add='Dilation not supported for objects defined in harmonic space')
+      end if
       call s2_sky_dilate(obj%sky, dilation, dilation, .false.)  
       obj%dilation = dilation
 
@@ -280,7 +376,12 @@ module comb_obj_mod
 !write(*,*) 'map power: ', power
 
       ! Rotate.
-      call s2_sky_rotate(obj%sky, alpha, beta, gamma)
+      if(obj%harmonic_tmpl) then
+         call s2_sky_rotate_alm(obj%sky, &
+              real(alpha,s2_dp), real(beta,s2_dp), real(gamma,s2_dp))
+      else
+         call s2_sky_rotate(obj%sky, alpha, beta, gamma)
+      end if
       obj%alpha = alpha
       obj%beta = beta
       obj%gamma = gamma
@@ -332,6 +433,7 @@ module comb_obj_mod
       copy%gamma = orig%gamma
       copy%name = orig%name
       copy%beam_status = orig%beam_status
+      copy%harmonic_tmpl = orig%harmonic_tmpl
 
       copy%sky = s2_sky_init(orig%sky)
 
@@ -376,6 +478,7 @@ module comb_obj_mod
       obj%gamma = 0.0e0
       obj%name = 'empty'
       obj%beam_status = .false.
+      obj%harmonic_tmpl = .false.
       obj%init = .false.
       
     end subroutine comb_obj_free
@@ -414,6 +517,38 @@ module comb_obj_mod
       obj%beam_status = .true.
 
     end subroutine comb_obj_conv
+
+
+    !--------------------------------------------------------------------------
+    ! comb_obj_compute_map
+    !
+    !! Compute the map of the obj sky at the nside specified.
+    !!
+    !! Variables:
+    !!   - obj: Obj object to compute alms of sky.
+    !!   - nside: Healpix nside parameter.
+    !
+    !! @author J. D. McEwen
+    !! @version Under svn verision control.
+    !
+    ! Revisions:
+    !   June 2010 - Written by Jason McEwen
+    !--------------------------------------------------------------------------
+ 
+    subroutine comb_obj_compute_map(obj, nside)
+
+      type(comb_obj), intent(inout) :: obj
+      integer, intent(in) :: nside
+
+      ! Check object initialised.
+      if(.not. obj%init) then
+        call comb_error(COMB_ERROR_NOT_INIT, 'comb_obj_compute_alm')
+      end if 
+
+      ! Compute obj sky map.
+      call s2_sky_compute_map(obj%sky, nside)
+
+    end subroutine comb_obj_compute_map
 
 
     !--------------------------------------------------------------------------
@@ -467,18 +602,26 @@ module comb_obj_mod
     !   August 2004 - Written by Jason McEwen
     !--------------------------------------------------------------------------
     
-    subroutine comb_obj_write_sky(obj, filename, comment)
+    subroutine comb_obj_write_sky(obj, filename, comment, file_type_in)
 
       type(comb_obj), intent(in) :: obj
       character(len=*), intent(in) :: filename
       character(len=*), intent(in), optional :: comment
+      integer, intent(in), optional :: file_type_in
+
+      integer :: file_type = S2_SKY_FILE_TYPE_MAP
+
+      ! Parse inputs.
+      if(present(file_type_in)) then
+         file_type = file_type_in
+      end if
 
      ! Check object initialised.
       if(.not. obj%init) then
         call comb_error(COMB_ERROR_NOT_INIT, 'comb_obj_write_sky')
       end if 
 
-      call s2_sky_write_map_file(obj%sky, filename, comment)
+      call s2_sky_write_file(obj%sky, filename, file_type, comment)
 
     end subroutine comb_obj_write_sky
 
@@ -764,6 +907,37 @@ module comb_obj_mod
       beam_status = obj%beam_status
 
     end function comb_obj_get_beam_status
+
+
+    !--------------------------------------------------------------------------
+    ! comb_obj_get_harmonic_tmpl
+    !
+    !! Get harmonic_tmpl variable from the passed comb obj.
+    !!
+    !! Variables:
+    !!   - obj: COMB obj object to get the variable of.
+    !!   - harmonic_tmpl: Object harmonic_tpl variable returned.
+    !
+    !! @author J. D. McEwen
+    !! @version Under svn version control.
+    !
+    ! Revisions:
+    !   June 2010 - Written by Jason McEwen
+    !--------------------------------------------------------------------------
+ 
+    function comb_obj_get_harmonic_tmpl(obj) result(harmonic_tmpl)
+
+      type(comb_obj), intent(in) :: obj
+      logical :: harmonic_tmpl
+
+      ! Check object initialised.
+      if(.not. obj%init) then
+        call comb_error(COMB_ERROR_NOT_INIT, 'comb_obj_get_harmonic_tmpl')
+      end if 
+
+      harmonic_tmpl = harmonic_tmpl
+
+    end function comb_obj_get_harmonic_tmpl
 
 
 end module comb_obj_mod

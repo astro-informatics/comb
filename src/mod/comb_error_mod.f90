@@ -32,7 +32,7 @@ module comb_error_mod
   ! Global variables
   !---------------------------------------
 
-  integer, parameter :: COMB_ERROR_NUM = 9
+  integer, parameter :: COMB_ERROR_NUM = 10
 
   integer, public, parameter :: &
     COMB_ERROR_NONE = 0, &
@@ -43,7 +43,8 @@ module comb_error_mod
     COMB_ERROR_CSKY_LMAX_NOT_DEF = 5, &
     COMB_ERROR_CSIM_NARG = 6, &
     COMB_ERROR_CSIM_PARAM_INVALID = 7, &
-    COMB_ERROR_TMPL_PARAM_INVALID = 8
+    COMB_ERROR_TMPL_PARAM_INVALID = 8, &
+    COMB_ERROR_OBJ_DILATION_INVALID = 9
 
 
   ! Each element of the error_comment array must have the same length, thus
@@ -61,7 +62,8 @@ module comb_error_mod
       'Lmax not defined when required                                           ', &
       'Invalid number of input parameters                                       ', &
       'Invalid input parameter                                                  ', &
-      'Invalid number of input parameters in template function                  ' &
+      'Invalid number of input parameters in template function                  ', &
+      'Invalid dilation                                                         ' &
       /) 
 
   !! Default program halt status of each error type.
@@ -70,6 +72,7 @@ module comb_error_mod
       (/ &
       .false., &
       .true., &
+      .true.,  &
       .true.,  &
       .true.,  &
       .true.,  &
