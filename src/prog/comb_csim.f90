@@ -21,7 +21,7 @@ program comb_csim
   use s2_vect_mod, only: s2_vect_arcmin_to_rad
   use s2_wnoise_mod
   use comb_error_mod
-  use comb_tmpl_mod
+  use comb_tmplmap_mod
   use comb_obj_mod
   use comb_csky_mod
   
@@ -393,27 +393,27 @@ program comb_csim
   select case (comb_type)
 
      case(COMB_TYPE_OPT(1))
-        obj_mother = comb_obj_init(comb_tmpl_butterfly, nside, 1.0e0, &
+        obj_mother = comb_obj_init(comb_tmplmap_butterfly, nside, 1.0e0, &
              name=trim(comb_type))
 
      case(COMB_TYPE_OPT(2))
-        obj_mother = comb_obj_init(comb_tmpl_gaussian, nside, 1.0e0, &
+        obj_mother = comb_obj_init(comb_tmplmap_gaussian, nside, 1.0e0, &
              name=trim(comb_type))
 
      case(COMB_TYPE_OPT(3))
-        obj_mother = comb_obj_init(comb_tmpl_mexhat, nside, 1.0e0, &
+        obj_mother = comb_obj_init(comb_tmplmap_mexhat, nside, 1.0e0, &
              name=trim(comb_type))
 
      case(COMB_TYPE_OPT(4))
-        obj_mother = comb_obj_init(comb_tmpl_morlet, nside, 1.0e0, &
+        obj_mother = comb_obj_init(comb_tmplmap_morlet, nside, 1.0e0, &
              name=trim(comb_type))
 
      case(COMB_TYPE_OPT(5))
-        obj_mother = comb_obj_init(comb_tmpl_point, nside, 1.0e0, &
+        obj_mother = comb_obj_init(comb_tmplmap_point, nside, 1.0e0, &
              name=trim(comb_type))
 
      case(COMB_TYPE_OPT(6))
-        obj_mother = comb_obj_init(comb_tmpl_cos_thetaon2, nside, 1.0e0, &
+        obj_mother = comb_obj_init(comb_tmplmap_cos_thetaon2, nside, 1.0e0, &
              name=trim(comb_type))
 
   end select

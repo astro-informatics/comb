@@ -87,7 +87,8 @@ endif
 COMBOBJ = $(COMBINC)/comb_error_mod.o \
           $(COMBINC)/comb_obj_mod.o   \
           $(COMBINC)/comb_csky_mod.o  \
-          $(COMBINC)/comb_tmpl_mod.o
+          $(COMBINC)/comb_tmplmap_mod.o \
+          $(COMBINC)/comb_tmplalm_mod.o
 
 
 # ======== MAKE RULES ========
@@ -147,7 +148,8 @@ tidy:
 # Module dependencies
 
 $(COMBINC)/comb_error_mod.o: $(COMBSRC)/comb_error_mod.f90
-$(COMBINC)/comb_tmpl_mod.o:  $(COMBSRC)/comb_tmpl_mod.f90
+$(COMBINC)/comb_tmplmap_mod.o:  $(COMBSRC)/comb_tmplmap_mod.f90
+$(COMBINC)/comb_tmplalm_mod.o:  $(COMBSRC)/comb_tmplalm_mod.f90
 $(COMBINC)/comb_obj_mod.o:   $(COMBSRC)/comb_obj_mod.f90  \
                                $(COMBINC)/comb_error_mod.o
 $(COMBINC)/comb_csky_mod.o:  $(COMBSRC)/comb_csky_mod.f90 \

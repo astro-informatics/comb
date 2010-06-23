@@ -11,7 +11,7 @@
 !   Septmeber 2004 - Written by Jason McEwen
 !------------------------------------------------------------------------------
 
-module comb_tmpl_mod
+module comb_tmplmap_mod
 
   use s2_types_mod
   use comb_error_mod
@@ -26,12 +26,12 @@ module comb_tmpl_mod
   !---------------------------------------
 
   public :: &
-    comb_tmpl_cos_thetaon2, &
-    comb_tmpl_point, &
-    comb_tmpl_butterfly, &
-    comb_tmpl_gaussian, &
-    comb_tmpl_mexhat, &
-    comb_tmpl_morlet
+    comb_tmplmap_cos_thetaon2, &
+    comb_tmplmap_point, &
+    comb_tmplmap_butterfly, &
+    comb_tmplmap_gaussian, &
+    comb_tmplmap_mexhat, &
+    comb_tmplmap_morlet
 
 
   !----------------------------------------------------------------------------
@@ -40,7 +40,7 @@ module comb_tmpl_mod
 
     
     !--------------------------------------------------------------------------
-    ! comb_tmpl_cos_thetaon2
+    ! comb_tmplmap_cos_thetaon2
     !
     !! Template function defined on the sphere.  
     !!   f(theta,phi) = cos(theta/2.0e0)
@@ -57,7 +57,7 @@ module comb_tmpl_mod
     !   September 2004 - Written by Jason McEwen
     !--------------------------------------------------------------------------
    
-    function comb_tmpl_cos_thetaon2(theta, phi, param) result(val)
+    function comb_tmplmap_cos_thetaon2(theta, phi, param) result(val)
 
       real(s2_sp), intent(in) :: theta, phi
       real(s2_sp), intent(in), optional :: param(:)
@@ -65,11 +65,11 @@ module comb_tmpl_mod
       
       val = cos(theta/2.0e0)
 
-    end function comb_tmpl_cos_thetaon2
+    end function comb_tmplmap_cos_thetaon2
 
 
     !--------------------------------------------------------------------------
-    ! comb_tmpl_point
+    ! comb_tmplmap_point
     !
     !! Template function defined on the sphere.  
     !! Point source centered at the north pole.
@@ -86,7 +86,7 @@ module comb_tmpl_mod
     !   May 2005 - Written by Jason McEwen
     !--------------------------------------------------------------------------
 
-    function comb_tmpl_point(theta, phi, param) result(val)
+    function comb_tmplmap_point(theta, phi, param) result(val)
 
       real(s2_sp), intent(in) :: theta, phi
       real(s2_sp), intent(in), optional :: param(:)
@@ -96,7 +96,7 @@ module comb_tmpl_mod
 
       if(present(param)) then
          if(size(param) /= 1) then
-          call comb_error(COMB_ERROR_TMPL_PARAM_INVALID, 'comb_tmpl_butterfly')
+          call comb_error(COMB_ERROR_TMPL_PARAM_INVALID, 'comb_tmplmap_point')
         end if
         theta_tol = param(1)
       end if
@@ -107,11 +107,11 @@ module comb_tmpl_mod
          val = 0.0e0
       end if
 
-    end function comb_tmpl_point
+    end function comb_tmplmap_point
 
 
     !--------------------------------------------------------------------------
-    ! comb_tmpl_butterfly
+    ! comb_tmplmap_butterfly
     !
     !! Template function defined on the sphere.  
     !! Butterfly is a Gaussian in y direction and first derrivative of 
@@ -129,7 +129,7 @@ module comb_tmpl_mod
     !   September 2004 - Written by Jason McEwen
     !--------------------------------------------------------------------------
    
-    function comb_tmpl_butterfly(theta, phi, param) result(val)
+    function comb_tmplmap_butterfly(theta, phi, param) result(val)
 
       real(s2_sp), intent(in) :: theta, phi
       real(s2_sp), intent(in), optional :: param(:)
@@ -141,7 +141,7 @@ module comb_tmpl_mod
 
       if(present(param)) then
         if(size(param) /= 2) then
-          call comb_error(COMB_ERROR_TMPL_PARAM_INVALID, 'comb_tmpl_butterfly')
+          call comb_error(COMB_ERROR_TMPL_PARAM_INVALID, 'comb_tmplmap_butterfly')
         end if
         sigma_x = param(1)
         sigma_y = param(2)
@@ -155,11 +155,11 @@ module comb_tmpl_mod
       val = - 4.0e0 * N * tan(theta/2.0e0) * cos(phi) / (1.0e0 + cos(theta)) &
        * exp(arg)
 
-    end function comb_tmpl_butterfly
+    end function comb_tmplmap_butterfly
 
 
     !--------------------------------------------------------------------------
-    ! comb_tmpl_gaussian
+    ! comb_tmplmap_gaussian
     !
     !! Template function defined on the sphere.  
     !! 2d Gaussian.
@@ -176,7 +176,7 @@ module comb_tmpl_mod
     !   September 2004 - Written by Jason McEwen
     !--------------------------------------------------------------------------
    
-    function comb_tmpl_gaussian(theta, phi, param) result(val)
+    function comb_tmplmap_gaussian(theta, phi, param) result(val)
 
       real(s2_sp), intent(in) :: theta, phi
       real(s2_sp), intent(in), optional :: param(:)
@@ -188,7 +188,7 @@ module comb_tmpl_mod
 
       if(present(param)) then
         if(size(param) /= 2) then
-          call comb_error(COMB_ERROR_TMPL_PARAM_INVALID, 'comb_tmpl_gaussian')
+          call comb_error(COMB_ERROR_TMPL_PARAM_INVALID, 'comb_tmplmap_gaussian')
         end if
         sigma_x = param(1)
         sigma_y = param(2)
@@ -201,11 +201,11 @@ module comb_tmpl_mod
 
       val =  N / (1.0e0 + cos(theta)) * exp(arg)
 
-    end function comb_tmpl_gaussian
+    end function comb_tmplmap_gaussian
 
 
     !--------------------------------------------------------------------------
-    ! comb_tmpl_mexhat
+    ! comb_tmplmap_mexhat
     !
     !! Template function defined on the sphere.  
     !! Mexican hat is negative of Laplacian of 2D Gaussian.
@@ -222,7 +222,7 @@ module comb_tmpl_mod
     !   September 2004 - Written by Jason McEwen
     !--------------------------------------------------------------------------
    
-    function comb_tmpl_mexhat(theta, phi, param) result(val)
+    function comb_tmplmap_mexhat(theta, phi, param) result(val)
 
       real(s2_sp), intent(in) :: theta, phi
       real(s2_sp), intent(in), optional :: param(:)
@@ -234,7 +234,7 @@ module comb_tmpl_mod
 
       if(present(param)) then
         if(size(param) /= 2) then
-          call comb_error(COMB_ERROR_TMPL_PARAM_INVALID, 'comb_tmpl_mexhat')
+          call comb_error(COMB_ERROR_TMPL_PARAM_INVALID, 'comb_tmplmap_mexhat')
         end if
         sigma_x = param(1)
         sigma_y = param(2)
@@ -252,11 +252,11 @@ module comb_tmpl_mod
       * ( sigma_x**2 + sigma_y**2 - 4.0e0 * (tan(theta/2.0e0))**2 &
           * (cos(phi)**2 / sigma_xony_sqrd  + sin(phi)**2 * sigma_xony_sqrd) )
 
-    end function comb_tmpl_mexhat
+    end function comb_tmplmap_mexhat
 
 
     !--------------------------------------------------------------------------
-    ! comb_tmpl_morlet
+    ! comb_tmplmap_morlet
     !
     !! Template function defined on the sphere.  
     !! Real Morlet wavelet.
@@ -279,7 +279,7 @@ module comb_tmpl_mod
     !   April 2005 - Written by Jason McEwen
     !--------------------------------------------------------------------------
    
-    function comb_tmpl_morlet(theta, phi, param) result(val)
+    function comb_tmplmap_morlet(theta, phi, param) result(val)
 
       real(s2_sp), intent(in) :: theta, phi
       real(s2_sp), intent(in), optional :: param(:)
@@ -293,7 +293,7 @@ module comb_tmpl_mod
             k0 = param(1)
          else
             call comb_error(COMB_ERROR_TMPL_PARAM_INVALID, &
-              'comb_tmpl_morlet')
+              'comb_tmplmap_morlet')
          end if
       end if
       
@@ -301,8 +301,8 @@ module comb_tmpl_mod
             * cos(sqrt(2.0e0) * k0 * tan(theta/2.0e0) * cos(phi)) &
             * exp(-2.0e0*(tan(theta/2.0e0)**2))
 
-    end function comb_tmpl_morlet
+    end function comb_tmplmap_morlet
 
 
 
-end module comb_tmpl_mod
+end module comb_tmplmap_mod
