@@ -240,12 +240,20 @@ module comb_csky_mod
 
       integer :: iobj, fail
       integer :: nside, lmax, mmax, pix_scheme
+      logical :: harmonic_tmpl
       type(s2_sky) :: temp_sky
 
       ! Check object not already initialised.
       if(csky%init) then
         call comb_error(COMB_ERROR_INIT, 'comb_csky_init_array')
         return
+      end if
+
+      ! Csky initialisation from templates defined in harmonic space is not 
+      ! supported at present.
+      if(comb_obj_get_harmonic_tmpl(obj(1))) then
+         call comb_error(COMB_ERROR_INIT_FAIL, 'comb_csky_init_array', &
+              comment_add='Initialisation from array of objects defined in harmonic space not supported currently.')
       end if
 
       ! Set attributes.
@@ -274,6 +282,7 @@ module comb_csky_mod
       lmax = s2_sky_get_lmax(temp_sky)
       mmax = s2_sky_get_mmax(temp_sky)
       pix_scheme = s2_sky_get_pix_scheme(temp_sky)
+      harmonic_tmpl = comb_obj_get_harmonic_tmpl(obj(1))
       call s2_sky_free(temp_sky)
 
       do iobj = 1,csky%nobj
@@ -282,7 +291,8 @@ module comb_csky_mod
          if(s2_sky_get_pix_scheme(temp_sky) /= pix_scheme &
             .or. s2_sky_get_nside(temp_sky) /= nside & 
             .or. s2_sky_get_lmax(temp_sky) /= lmax & 
-            .or. s2_sky_get_mmax(temp_sky) /= mmax ) then 
+            .or. s2_sky_get_mmax(temp_sky) /= mmax &
+            .or. comb_obj_get_harmonic_tmpl(obj(iobj)) .neqv. harmonic_tmpl ) then 
            call comb_error(COMB_ERROR_INIT_FAIL, 'comb_csky_init_array', &
              comment_add=&
              'Compact objects in array have inconsistent properties')
@@ -387,6 +397,7 @@ module comb_csky_mod
 
       integer :: iobj
       type(s2_sky) :: obj_sky_temp, csky_sky_temp
+      logical :: harmonic_tmpl
 
       ! Check object initialised.
       if(.not. csky%init) then
@@ -401,7 +412,12 @@ module comb_csky_mod
       ! Then add all other compact objects to sky.
       do iobj = 2,csky%nobj
          obj_sky_temp = comb_obj_get_sky(csky%obj(iobj))
-         csky_sky_temp = s2_sky_add(csky%sky_obj, obj_sky_temp)
+         harmonic_tmpl = comb_obj_get_harmonic_tmpl(csky%obj(iobj))
+         if (harmonic_tmpl) then
+            csky_sky_temp = s2_sky_add_alm(csky%sky_obj, obj_sky_temp)
+         else
+            csky_sky_temp = s2_sky_add(csky%sky_obj, obj_sky_temp)
+         end if
          call s2_sky_free(csky%sky_obj)
          csky%sky_obj = s2_sky_init(csky_sky_temp)
          call s2_sky_free(csky_sky_temp)

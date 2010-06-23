@@ -42,7 +42,8 @@ module comb_obj_mod
     comb_obj_get_beta, &
     comb_obj_get_gamma, &
     comb_obj_get_name, &
-    comb_obj_get_beam_status
+    comb_obj_get_beam_status, &
+    comb_obj_get_harmonic_tmpl
 
 
 
