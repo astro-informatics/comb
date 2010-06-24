@@ -128,13 +128,14 @@ module comb_obj_mod
     !--------------------------------------------------------------------------
     
     function comb_obj_init_template(template_fun, nside, amplitude, &
-      pix_scheme_in, dilation, alpha, beta, gamma, name) result(obj)
+      pix_scheme_in, dilation, alpha, beta, gamma, name, param) result(obj)
 
       real(s2_sp), intent(in) :: amplitude
       integer, intent(in) :: nside
       integer, intent(in), optional :: pix_scheme_in
       real(s2_sp), intent(in), optional :: dilation, alpha, beta, gamma
       character(len=*), intent(in), optional :: name
+      real(s2_sp), intent(in), optional :: param(:)
       type(comb_obj) :: obj
       interface 
          function template_fun(theta, phi, param) result(val)
@@ -161,7 +162,7 @@ module comb_obj_mod
       end if
 
       ! Initialise sky.
-      obj%sky = s2_sky_init(template_fun, nside, pix_scheme)
+      obj%sky = s2_sky_init(template_fun, nside, pix_scheme, param=param)
 
       ! Set object attributes.
       obj%amplitude = amplitude

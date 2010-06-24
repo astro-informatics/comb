@@ -44,7 +44,7 @@ program comb_csim
 
   character(len=S2_STRING_LEN) :: filename_param
   character(len=S2_STRING_LEN) :: description
-  character(len=S2_STRING_LEN) :: line
+  character(len=S2_STRING_LEN) :: line, line2
   type(paramfile_handle) :: handle
 
   integer, parameter :: NUM_COMMENT_LINES_CLT_FILE = 29   ! Value for WMAP1
@@ -131,6 +131,16 @@ program comb_csim
   ! analysis.
   integer :: comb_gamma_grid_num
   integer, parameter :: COMB_GAMMA_GRID_NUM_DEFAULT = 5
+
+  ! comb_tmpl_param_file
+  character(len=S2_STRING_LEN) :: comb_tmpl_param_file
+  character(len=S2_STRING_LEN), parameter :: &
+    COMB_TMPL_FILE_DEFAULT = 'NA'
+  real(s2_sp), allocatable :: comb_tmpl_params(:)
+  integer :: fileid_tmpl_param = 21
+  integer :: n_tmpl_params, iparam
+  character(len=1), parameter :: COMMENT_CHAR = '#'
+  logical :: params_present = .false.
 
   !---------------------------------------
   
@@ -341,6 +351,42 @@ program comb_csim
      gamma = 0.0e0
   end if
 
+  ! Read template parameters from file
+  if (trim(comb_tmpl_param_file) /= trim(COMB_TMPL_FILE_DEFAULT)) then
+
+     ! Open file
+     open(fileid_tmpl_param, file=comb_tmpl_param_file, &
+          form='formatted', status='old')
+     
+     ! Ignore leading comment lines.
+     line = COMMENT_CHAR
+     do while(line(1:1) == COMMENT_CHAR)
+        read(fileid_tmpl_param,'(a)') line
+     end do
+
+     ! Read number of source positions from last line read (that is actually
+     ! not a comment line).
+     read(line, *) line2, n_tmpl_params
+
+     ! Allocate space for parameters.
+     allocate(comb_tmpl_params(1:n_tmpl_params), stat=fail)
+     if(fail /= 0) then
+        call s2_error(S2_ERROR_MEM_ALLOC_FAIL, 'comb_csim')
+     end if
+
+     ! Read data for sources found.
+     do iparam = 1,n_tmpl_params
+        read(fileid_tmpl_param,*) comb_tmpl_params(iparam)
+     end do
+
+     ! Close file
+     close(fileid_tmpl_param)
+
+     ! Set param status.
+     params_present = .true.
+
+  end if
+
   ! ---------------------------------------
 
   ! Generate simulations.
@@ -409,34 +455,70 @@ program comb_csim
   select case (comb_type)
 
      case(COMB_TYPE_OPT(1))
-        obj_mother = comb_obj_init(comb_tmplmap_butterfly, nside, 1.0e0, &
-             name=trim(comb_type))
+        if (params_present) then
+           obj_mother = comb_obj_init(comb_tmplmap_butterfly, nside, 1.0e0, &
+                name=trim(comb_type), param=comb_tmpl_params)
+        else
+           obj_mother = comb_obj_init(comb_tmplmap_butterfly, nside, 1.0e0, &
+                name=trim(comb_type))
+        end if
 
      case(COMB_TYPE_OPT(2))
-        obj_mother = comb_obj_init(comb_tmplmap_gaussian, nside, 1.0e0, &
-             name=trim(comb_type))
+        if (params_present) then
+           obj_mother = comb_obj_init(comb_tmplmap_gaussian, nside, 1.0e0, &
+                name=trim(comb_type), param=comb_tmpl_params)
+        else
+           obj_mother = comb_obj_init(comb_tmplmap_gaussian, nside, 1.0e0, &
+                name=trim(comb_type))
+        end if
 
      case(COMB_TYPE_OPT(3))
-        obj_mother = comb_obj_init(comb_tmplmap_mexhat, nside, 1.0e0, &
-             name=trim(comb_type))
+        if (params_present) then
+           obj_mother = comb_obj_init(comb_tmplmap_mexhat, nside, 1.0e0, &
+                name=trim(comb_type), param=comb_tmpl_params)
+        else
+           obj_mother = comb_obj_init(comb_tmplmap_mexhat, nside, 1.0e0, &
+                name=trim(comb_type))
+        end if
 
      case(COMB_TYPE_OPT(4))
-        obj_mother = comb_obj_init(comb_tmplmap_morlet, nside, 1.0e0, &
-             name=trim(comb_type))
+        if (params_present) then
+           obj_mother = comb_obj_init(comb_tmplmap_morlet, nside, 1.0e0, &
+                name=trim(comb_type), param=comb_tmpl_params)
+        else
+           obj_mother = comb_obj_init(comb_tmplmap_morlet, nside, 1.0e0, &
+                name=trim(comb_type))
+
+        end if
 
      case(COMB_TYPE_OPT(5))
-        obj_mother = comb_obj_init(comb_tmplmap_point, nside, 1.0e0, &
-             name=trim(comb_type))
+        if (params_present) then
+           obj_mother = comb_obj_init(comb_tmplmap_point, nside, 1.0e0, &
+                name=trim(comb_type), param=comb_tmpl_params)
+        else
+           obj_mother = comb_obj_init(comb_tmplmap_point, nside, 1.0e0, &
+                name=trim(comb_type))
+        end if
 
      case(COMB_TYPE_OPT(6))
-        obj_mother = comb_obj_init(comb_tmplmap_cos_thetaon2, nside, 1.0e0, &
-             name=trim(comb_type))
+        if (params_present) then
+           obj_mother = comb_obj_init(comb_tmplmap_cos_thetaon2, nside, 1.0e0, &
+                name=trim(comb_type), param=comb_tmpl_params)
+        else
+           obj_mother = comb_obj_init(comb_tmplmap_cos_thetaon2, nside, 1.0e0, &
+                name=trim(comb_type))
+        end if
 
      case(COMB_TYPE_OPT(7))
 !TODO: set parameters
 !TODO: to define with different sigmas will need to defined full array rathter than through mother
-        obj_mother = comb_obj_init(comb_tmplalm_gaussian, lmax, .false., 1.0e0, &
-             name=trim(comb_type))
+        if (params_present) then
+           obj_mother = comb_obj_init(comb_tmplalm_gaussian, lmax, .false., 1.0e0, &
+                name=trim(comb_type), param=comb_tmpl_params)
+        else
+           obj_mother = comb_obj_init(comb_tmplalm_gaussian, lmax, .false., 1.0e0, &
+                name=trim(comb_type))
+        end if
 
   end select
 
@@ -807,6 +889,12 @@ program comb_csim
          call comb_error(COMB_ERROR_CSIM_PARAM_INVALID, 'comb_sim', &
               comment_add='comb_gamma_grid_num invalid')
       end if
+
+      ! Get comb_tmpl_param_file.
+      description = concatnl('', &
+        'Enter comb_tmpl_param_file (set to "NA" if template parameter overrides not required): ')
+      comb_tmpl_param_file = parse_string(handle, 'comb_tmpl_param_file', &
+        default=trim(COMB_TMPL_FILE_DEFAULT), descr=description)
 
       !---------------------------------------
 

@@ -1,0 +1,38 @@
+# COMB_CSIM input parmater file
+#
+# Jason McEwen
+# August 2004
+
+# Healpix parameters
+nside = 128
+lmax = 256
+mmax = 256
+
+# Compact object parameters
+comb_seed = 1
+comb_type = harmonic_gaussian
+comb_num = 10
+comb_amp_lower = 2.0e0
+comb_amp_upper = 2.0e0
+comb_dil_lower = 1.0e0
+comb_dil_upper = 1.0e0
+comb_dil_grid_num = 1
+comb_gamma_grid_num = 1
+comb_tmpl_param_file = tmplparam.txt
+
+# Primordial CMB parameters
+cmb_status = .false.
+
+# Beam parameters
+beam_status = .false.
+
+# Noise parameters
+noise_status = .false.
+
+# Output files
+file_type = alm
+output_file_csky = data_out/csky_alm.fits
+output_file_obj = data_out/obj_alm.fits
+output_file_obj_mother = data_out/obj_mother_alm.fits
+output_file_param = data_out/param_out.par
+
