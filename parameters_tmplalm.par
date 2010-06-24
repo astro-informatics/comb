@@ -19,6 +19,7 @@ comb_dil_upper = 1.0e0
 comb_dil_grid_num = 1
 comb_gamma_grid_num = 1
 comb_tmpl_param_file = tmplparam.txt
+comb_theta_centre_fov = 90.0e0
 
 # Primordial CMB parameters
 cmb_status = .false.

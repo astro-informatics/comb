@@ -132,6 +132,11 @@ program comb_csim
   integer :: comb_gamma_grid_num
   integer, parameter :: COMB_GAMMA_GRID_NUM_DEFAULT = 5
 
+  ! comb_theta_centre_fov
+  real(s2_sp) :: comb_theta_centre_fov
+  real(s2_sp), parameter :: COMB_THETA_CENTRE_FOV_OPT(2) = (/ 0.0e0, 180.0e0 /) 
+  real(s2_sp), parameter :: COMB_THETA_CENTRE_FOV_DEFAULT = 0e0
+
   ! comb_tmpl_param_file
   character(len=S2_STRING_LEN) :: comb_tmpl_param_file
   character(len=S2_STRING_LEN), parameter :: &
@@ -278,6 +283,9 @@ program comb_csim
   real(s2_sp), allocatable :: amplitude(:)
   real(s2_sp), allocatable :: dilation(:)
   real(s2_sp), allocatable :: alpha(:), beta(:), gamma(:)
+
+  real(s2_sp) :: theta_centre_fov = 0.0
+  real(s2_sp) :: xtmp, ytmp, rtmp, phi0, theta0, xmax_sgp
 
   type(comb_obj) :: obj_mother
   type(comb_csky) :: csky
@@ -890,6 +898,24 @@ program comb_csim
               comment_add='comb_gamma_grid_num invalid')
       end if
 
+      ! Get comb_theta_centre_fov.
+      write(line,'(a,f4.1,a,f4.1,a)') '(Between the range ', &
+        COMB_THETA_CENTRE_FOV_OPT(1), ' and ', COMB_THETA_CENTRE_FOV_OPT(2), ')'
+      description = concatnl('', &
+        'Enter comb_theta_centre_fov (in degrees): ', &
+        line)
+131   continue
+      comb_theta_centre_fov = parse_real(handle, 'comb_theta_centre_fov', &
+        default=COMB_THETA_CENTRE_FOV_DEFAULT, descr=description)
+      if(.not. &
+        comb_csim_param_check_type(comb_theta_centre_fov, COMB_THETA_CENTRE_FOV_OPT)) then
+         if(handle%interactive) goto 131
+         call comb_error(COMB_ERROR_CSIM_PARAM_INVALID, 'comb_sim', &
+              comment_add='comb_theta_centre_fov invalid')
+      end if
+      ! Convert to radians.
+      comb_theta_centre_fov = comb_theta_centre_fov / 180.0 * pi
+
       ! Get comb_tmpl_param_file.
       description = concatnl('', &
         'Enter comb_tmpl_param_file (set to "NA" if template parameter overrides not required): ')
@@ -1176,10 +1202,20 @@ program comb_csim
          
          dilation(iobj) = s2_distn_sample_uniform(comb_seed, comb_dil_lower, &
               comb_dil_upper)
-         
-         alpha(iobj) = s2_distn_sample_uniform(comb_seed, 0.0e0, 2*pi)
 
-         beta(iobj) = s2_distn_sample_uniform(comb_seed, 0.0e0, pi)
+         if(abs(comb_theta_centre_fov) < TOL) then
+            alpha(iobj) = s2_distn_sample_uniform(comb_seed, 0.0e0, 2*pi)
+            beta(iobj) = s2_distn_sample_uniform(comb_seed, 0.0e0, pi)
+         else
+            xmax_sgp = sqrt(2.0) * tan(comb_theta_centre_fov/4.0)
+            xtmp = s2_distn_sample_uniform(comb_seed, -xmax_sgp, xmax_sgp)
+            ytmp = s2_distn_sample_uniform(comb_seed, -xmax_sgp, xmax_sgp)
+            rtmp = sqrt(xtmp**2 + ytmp**2)
+            phi0 = atan2(ytmp, xtmp)
+            theta0 = 2 * atan(rtmp/2.0)
+            alpha(iobj) = phi0
+            beta(iobj) = theta0
+         end if
 
          gamma(iobj) = s2_distn_sample_uniform(comb_seed, comb_gamma_lower, &
               comb_gamma_upper)
