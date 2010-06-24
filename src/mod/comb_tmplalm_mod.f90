@@ -56,9 +56,9 @@ module comb_tmplalm_mod
 
       integer, intent(in) :: el, m
       real(s2_sp), intent(in), optional :: param(:)
-      real(s2_sp) :: val
+      complex(s2_spc) :: val
 
-      real(s2_sp) :: sigma = 1.0e0
+      real(s2_sp) :: sigma = 0.05e0
       real(s2_sp) :: N, arg
 
       if(present(param)) then
@@ -68,7 +68,11 @@ module comb_tmplalm_mod
         sigma = param(1)
       end if
 
-      val =  exp(-el*el*sigma*sigma/2e0)
+      if (m == 0) then
+         val =  exp(-el*el*sigma*sigma/2e0)
+      else
+         val = 0
+      end if
 
     end function comb_tmplalm_gaussian
 

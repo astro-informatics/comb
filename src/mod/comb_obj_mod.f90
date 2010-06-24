@@ -240,10 +240,10 @@ module comb_obj_mod
            use s2_types_mod
            integer, intent(in) :: el, m
            real(s2_sp), intent(in), optional :: param(:)
-           real(s2_sp) :: val
+           complex(s2_spc) :: val
          end function template_fun
       end interface
-      
+
       ! Check object not already initialised.
       if(obj%init) then
         call comb_error(COMB_ERROR_INIT, 'comb_obj_init_template_alm')
@@ -370,8 +370,12 @@ module comb_obj_mod
          call comb_error(COMB_ERROR_OBJ_DILATION_INVALID, 'comb_obj_init_mother', &
               comment_add='Dilation not supported for objects defined in harmonic space')
       end if
-      call s2_sky_dilate(obj%sky, dilation, dilation, .false.)  
-      obj%dilation = dilation
+      if( abs(dilation - 1e0) > TOL ) then
+         call s2_sky_dilate(obj%sky, dilation, dilation, .false.)  
+         obj%dilation = dilation
+      else
+         obj%dilation = 1.0
+      end if
 
 !power = s2_sky_power_map(obj%sky)
 !write(*,*) 'map power: ', power
@@ -936,7 +940,7 @@ module comb_obj_mod
         call comb_error(COMB_ERROR_NOT_INIT, 'comb_obj_get_harmonic_tmpl')
       end if 
 
-      harmonic_tmpl = harmonic_tmpl
+      harmonic_tmpl = obj%harmonic_tmpl
 
     end function comb_obj_get_harmonic_tmpl
 

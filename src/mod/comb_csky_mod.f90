@@ -480,8 +480,6 @@ module comb_csky_mod
          csky%sky_full = s2_sky_init(csky_sky_temp)
          call s2_sky_free(csky_sky_temp)
          call s2_sky_free(sky_temp)
-
-
       end if
 
     end subroutine comb_csky_compute_sky_full
@@ -628,26 +626,32 @@ module comb_csky_mod
     !!   - filename: Name of the output fits file.
     !!   - [comment]: Optional additional comment to be added to the fits file
     !!     header.
+    !!   - [file_type_in]: Optional specifying type of file to write.
     !
     !! @author J. D. McEwen
-    !! @version 0.1 August 2004
     !
     ! Revisions:
     !   August 2004 - Written by Jason McEwen
+    !   June 2010 - Ability to write different file types added by Jason McEwen
     !--------------------------------------------------------------------------
 
-    subroutine comb_csky_write_sky_obj(csky, filename, comment)
+    subroutine comb_csky_write_sky_obj(csky, filename, comment, file_type_in)
 
       type(comb_csky), intent(in) :: csky
       character(len=*), intent(in) :: filename
       character(len=*), intent(in), optional :: comment
+      integer, intent(in), optional :: file_type_in
 
+      integer :: file_type = S2_SKY_FILE_TYPE_MAP
+
+      if(present(file_type_in)) file_type = file_type_in
+      
       ! Check object initialised.
       if(.not. csky%init) then
         call comb_error(COMB_ERROR_NOT_INIT, 'comb_csky_write_sky_obj')
       end if 
 
-      call s2_sky_write_map_file(csky%sky_obj, filename, comment)
+      call s2_sky_write_file(csky%sky_obj, filename, file_type, comment)
 
     end subroutine comb_csky_write_sky_obj
 
@@ -663,26 +667,32 @@ module comb_csky_mod
     !!   - filename: Name of the output fits file.
     !!   - [comment]: Optional additional comment to be added to the fits file
     !!     header.
+    !!   - [file_type_in]: Optional specifying type of file to write.
     !
     !! @author J. D. McEwen
-    !! @version 0.1 August 2004
     !
     ! Revisions:
     !   August 2004 - Written by Jason McEwen
+    !   June 2010 - Ability to write different file types added by Jason McEwen
     !--------------------------------------------------------------------------
 
-    subroutine comb_csky_write_sky_full(csky, filename, comment)
+    subroutine comb_csky_write_sky_full(csky, filename, comment, file_type_in)
 
       type(comb_csky), intent(in) :: csky
       character(len=*), intent(in) :: filename
       character(len=*), intent(in), optional :: comment
+      integer, intent(in), optional :: file_type_in
+
+      integer :: file_type = S2_SKY_FILE_TYPE_MAP
+
+      if(present(file_type_in)) file_type = file_type_in
 
       ! Check object initialised.
       if(.not. csky%init) then
         call comb_error(COMB_ERROR_NOT_INIT, 'comb_csky_write_sky_full')
       end if 
 
-      call s2_sky_write_map_file(csky%sky_full, filename, comment)
+      call s2_sky_write_file(csky%sky_full, filename, file_type, comment)
 
     end subroutine comb_csky_write_sky_full
 
@@ -700,7 +710,6 @@ module comb_csky_mod
     !!     header.
     !
     !! @author J. D. McEwen
-    !! @version 0.1 August 2004
     !
     ! Revisions:
     !   August 2004 - Written by Jason McEwen
@@ -741,7 +750,6 @@ module comb_csky_mod
     !!     header.
     !
     !! @author J. D. McEwen
-    !! @version 0.1 August 2004
     !
     ! Revisions:
     !   August 2004 - Written by Jason McEwen

@@ -20,8 +20,10 @@ program comb_csim
   use s2_pl_mod
   use s2_vect_mod, only: s2_vect_arcmin_to_rad
   use s2_wnoise_mod
+  use s2_sky_mod
   use comb_error_mod
   use comb_tmplmap_mod
+  use comb_tmplalm_mod
   use comb_obj_mod
   use comb_csky_mod
   
@@ -77,15 +79,16 @@ program comb_csim
 
   ! comb_type
   character(len=S2_STRING_LEN) :: comb_type
-  integer, parameter :: COMB_TYPE_OPT_NUM = 6
+  integer, parameter :: COMB_TYPE_OPT_NUM = 7
   character(len=S2_STRING_LEN), parameter :: &
     COMB_TYPE_OPT(COMB_TYPE_OPT_NUM) = (/ &
-    'butterfly   ', &
-    'gaussian    ', &
-    'mexhat      ', &
-    'morlet      ', &
-    'point       ', &
-    'cos_thetaon2'  &
+    'butterfly        ', &
+    'gaussian         ', &
+    'mexhat           ', &
+    'morlet           ', &
+    'point            ', &
+    'cos_thetaon2     ', &
+    'harmonic_gaussian' &
     /)
   character(len=S2_STRING_LEN), parameter :: &
     COMB_TYPE_DEFAULT = COMB_TYPE_OPT(1)
@@ -201,6 +204,19 @@ program comb_csim
   !---------------------------------------
 
   ! Output filename parameters
+
+ ! comb_type
+  character(len=S2_STRING_LEN) :: file_type
+  integer :: file_type_int
+  integer, parameter :: FILE_TYPE_OPT_NUM = 3
+  character(len=S2_STRING_LEN), parameter :: &
+    FILE_TYPE_OPT(FILE_TYPE_OPT_NUM) = (/ &
+    'map', &
+    'alm', &
+    'sky' &
+    /)
+  character(len=S2_STRING_LEN), parameter :: &
+    FILE_TYPE_DEFAULT = FILE_TYPE_OPT(1)
 
   ! output_file_csky
   character(len=S2_STRING_LEN) :: output_file_csky
@@ -416,6 +432,12 @@ program comb_csim
         obj_mother = comb_obj_init(comb_tmplmap_cos_thetaon2, nside, 1.0e0, &
              name=trim(comb_type))
 
+     case(COMB_TYPE_OPT(7))
+!TODO: set parameters
+!TODO: to define with different sigmas will need to defined full array rathter than through mother
+        obj_mother = comb_obj_init(comb_tmplalm_gaussian, lmax, .false., 1.0e0, &
+             name=trim(comb_type))
+
   end select
 
   ! Generate csky with cmb and wnoise if specified.
@@ -475,9 +497,22 @@ program comb_csim
   ! Generate output files
   !---------------------------------------
 
-  call comb_csky_write_sky_full(csky, output_file_csky)
-  call comb_csky_write_sky_obj(csky, output_file_obj)
-  call comb_obj_write_sky(obj_mother, output_file_obj_mother)
+  select case (file_type)
+
+     case(FILE_TYPE_OPT(1))
+        file_type_int = S2_SKY_FILE_TYPE_MAP
+
+     case(FILE_TYPE_OPT(2))
+        file_type_int = S2_SKY_FILE_TYPE_ALM
+
+     case(FILE_TYPE_OPT(3))
+        file_type_int = S2_SKY_FILE_TYPE_SKY
+
+  end select
+
+  call comb_csky_write_sky_full(csky, output_file_csky, file_type_in=file_type_int)
+  call comb_csky_write_sky_obj(csky, output_file_obj, file_type_in=file_type_int)
+  call comb_obj_write_sky(obj_mother, output_file_obj_mother, file_type_in=file_type_int)
 
   if(cmb_status) then
      call s2_cmb_write_sky(cmb, trim(output_file_cmb))
@@ -882,6 +917,27 @@ program comb_csim
       !---------------------------------------
 
       ! Get output filename parameters.
+
+      ! Get file_type.
+      line = '(Options:'
+      iopt = 1
+      line = trim(line) // ' ' // trim(FILE_TYPE_OPT(iopt)) // ';'
+      do iopt = 2,FILE_TYPE_OPT_NUM
+         line = trim(line) // ' ' // trim(FILE_TYPE_OPT(iopt))
+         if(iopt /= FILE_TYPE_OPT_NUM) line = trim(line) // ';'
+      end do
+      line = trim(line) // ')'
+      description = concatnl('', &
+        'Enter file_type: ', &
+        line)
+14    continue
+      file_type = parse_string(handle, 'file_type', &
+        default=trim(FILE_TYPE_DEFAULT), descr=description)
+      if(.not. comb_csim_param_check_type(file_type, FILE_TYPE_OPT)) then
+         if(handle%interactive) goto 14
+         call s2_error(S2_ERROR_SKY_FTYPE_INVALID, 'comb_sim', &
+              comment_add='file_type invalid')
+      end if
 
       ! Get ouput_file_csky.
       description = concatnl('', &
