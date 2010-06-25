@@ -1213,8 +1213,8 @@ program comb_csim
             rtmp = sqrt(xtmp**2 + ytmp**2)
             phi0 = atan2(ytmp, xtmp)
             theta0 = 2 * atan(rtmp/2.0)
-            alpha(iobj) = phi0
-            beta(iobj) = theta0
+            alpha(iobj) = mod(phi0, 2*pi)
+            beta(iobj) = mod(theta0, pi)
          end if
 
          gamma(iobj) = s2_distn_sample_uniform(comb_seed, comb_gamma_lower, &
