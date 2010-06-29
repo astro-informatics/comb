@@ -9,17 +9,17 @@ lmax = 128
 mmax = 128
 
 # Compact object parameters
-comb_seed = 2
+comb_seed = 1
 comb_type = harmonic_gaussian
-comb_num = 50
-comb_amp_lower = 2.0e0
-comb_amp_upper = 2.0e0
+comb_num = 10
+comb_amp_lower = 1.0e0
+comb_amp_upper = 1.0e0
 comb_dil_lower = 1.0e0
 comb_dil_upper = 1.0e0
 comb_dil_grid_num = 1
 comb_gamma_grid_num = 1
 comb_tmpl_param_file = tmplparam.txt
-comb_theta_centre_fov = 70.0e0
+comb_theta_centre_fov = 60.0e0
 
 # Primordial CMB parameters
 cmb_status = .false.
