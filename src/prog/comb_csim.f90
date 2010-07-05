@@ -727,7 +727,7 @@ program comb_csim
 4     continue
       lmax = parse_int(handle, 'lmax', &
         default=LMAX_DEFAULT, descr=description)
-      if(lmax <= 0 .or. lmax >= 3*nside) then
+      if(lmax <= 0 .or. lmax > 3*nside) then
          if(handle%interactive) goto 4
          call comb_error(COMB_ERROR_CSIM_PARAM_INVALID, 'comb_csim', &
            comment_add='lmax invalid')
@@ -742,7 +742,7 @@ program comb_csim
 5     continue
       mmax = parse_int(handle, 'mmax', &
         default=MMAX_DEFAULT, descr=description)
-      if(mmax <= 0 .or. mmax >= 3*nside) then
+      if(mmax <= 0 .or. mmax > 3*nside) then
          if(handle%interactive) goto 5
          call comb_error(COMB_ERROR_CSIM_PARAM_INVALID, 'comb_csim', &
            comment_add='lmax invalid')
