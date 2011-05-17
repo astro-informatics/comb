@@ -21,7 +21,7 @@ OPT = $(OPTPGPLOT) -m64
 
 # ======== LINKS ========
 
-PROGDIR = /Users/mcewen/src
+PROGDIR = /Users/jdm/Src
 
 HPIXDIR = $(PROGDIR)/Healpix
 HPIXLIB = $(HPIXDIR)/lib
