@@ -15,7 +15,7 @@ FC      = gfortran
 ifneq ($(USEPGPLOT),yes)
   OPTPGPLOT     = -DNO_PGPLOT
 endif
-OPT = $(OPTPGPLOT) -m64
+OPT = $(OPTPGPLOT) -m64 -O3 -DCOMB_VERSION=\"1.0b2\" -DCOMB_BUILD=\"`svnversion -n .`\" 
 
 
 # ======== LINKS ========
@@ -98,7 +98,7 @@ all:     lib prog
 
 lib:     $(COMBLIB)/lib$(COMBLIBNM).a 
 
-prog:    $(COMBBIN)/comb_csim $(COMBBIN)/comb_objgen
+prog:    $(COMBBIN)/comb_csim $(COMBBIN)/comb_objgen $(COMBBIN)/comb_about
 
 $(COMBINC)/%.o: $(COMBSRC)/%.f90
 	$(FC) $(FFLAGS) $(PPFLAGS) -c $< -o $@ 
@@ -166,6 +166,11 @@ $(COMBBIN)/comb_csim:      $(COMBINC)/comb_csim.o
 $(COMBBIN)/comb_objgen.o:	$(COMBPROG)/comb_objgen.f90 lib
 $(COMBBIN)/comb_objgen:      $(COMBINC)/comb_objgen.o 
 	$(FC) -o $(COMBBIN)/comb_objgen $(COMBINC)/comb_objgen.o \
+	$(LDFLAGS) $(PPFLAGS)
+
+$(COMBBIN)/comb_about.o:	$(COMBPROG)/comb_about.f90 lib
+$(COMBBIN)/comb_about:      $(COMBINC)/comb_about.o 
+	$(FC) -o $(COMBBIN)/comb_about $(COMBINC)/comb_about.o \
 	$(LDFLAGS) $(PPFLAGS)
 
 
