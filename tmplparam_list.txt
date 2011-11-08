@@ -1,0 +1,10 @@
+# Template parameter file list
+#
+nfiles 5
+nparam 2
+tmplparam01.txt
+tmplparam02.txt
+tmplparam03.txt
+tmplparam04.txt
+tmplparam05.txt
+

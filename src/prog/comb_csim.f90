@@ -103,12 +103,12 @@ program comb_csim
 
   ! comb_amp_lower
   real(s2_sp) :: comb_amp_lower
-  real(s2_sp), parameter :: COMB_AMP_LOWER_OPT(2) = (/ 0.01e0, 5.0e0 /) 
+  real(s2_sp), parameter :: COMB_AMP_LOWER_OPT(2) = (/ 0.0e0, 5.0e0 /) 
   real(s2_sp), parameter :: COMB_AMP_LOWER_DEFAULT = 0.1e0
 
   ! comb_amp_upper
   real(s2_sp) :: comb_amp_upper
-  real(s2_sp), parameter :: COMB_AMP_UPPER_OPT(2) = (/ 0.01e0, 5.0e0 /) 
+  real(s2_sp), parameter :: COMB_AMP_UPPER_OPT(2) = (/ 0.0e0, 5.0e0 /) 
   real(s2_sp), parameter :: COMB_AMP_UPPER_DEFAULT = 2.0e0
  
   ! comb_dil_lower
@@ -138,14 +138,22 @@ program comb_csim
   real(s2_sp), parameter :: COMB_THETA_CENTRE_FOV_DEFAULT = 0e0
 
   ! comb_tmpl_param_file
-  character(len=S2_STRING_LEN) :: comb_tmpl_param_file
+  character(len=S2_STRING_LEN) :: comb_tmpl_param_file, comb_tmpl_param_file_read
   character(len=S2_STRING_LEN), parameter :: &
     COMB_TMPL_FILE_DEFAULT = 'NA'
-  real(s2_sp), allocatable :: comb_tmpl_params(:)
+  real(s2_sp), allocatable :: comb_tmpl_params(:,:)
   integer :: fileid_tmpl_param = 21
   integer :: n_tmpl_params, iparam
   character(len=1), parameter :: COMMENT_CHAR = '#'
   logical :: params_present = .false.
+
+  ! comb_tmpl_param_file_list
+  character(len=S2_STRING_LEN) :: comb_tmpl_param_file_list
+  character(len=S2_STRING_LEN), parameter :: &
+    COMB_TMPL_FILE_LIST_DEFAULT = 'NA'
+  integer :: fileid_tmpl_param_list = 22
+  integer :: n_tmpl_params_list, iparamlist, n_tmpl_params_check
+  logical :: params_list_present = .false.
 
   !---------------------------------------
   
@@ -288,6 +296,7 @@ program comb_csim
   real(s2_sp) :: xtmp, ytmp, rtmp, phi0, theta0, xmax_sgp
 
   type(comb_obj) :: obj_mother
+  type(comb_obj), allocatable :: obj(:)
   type(comb_csky) :: csky
   type(s2_pl) :: beam
   type(s2_cmb) :: cmb
@@ -359,8 +368,90 @@ program comb_csim
      gamma = 0.0e0
   end if
 
+  ! Read template parameters list from file
+  if (trim(comb_tmpl_param_file_list) /= trim(COMB_TMPL_FILE_LIST_DEFAULT)) then
+
+     ! Open file
+     open(fileid_tmpl_param_list, file=comb_tmpl_param_file_list, &
+          form='formatted', status='old')
+
+     ! Ignore leading comment lines.
+     line = COMMENT_CHAR
+     do while(line(1:1) == COMMENT_CHAR)
+        read(fileid_tmpl_param_list,'(a)') line
+     end do
+
+     ! Read number of files from last line read (that is actually
+     ! not a comment line).
+     read(line, *) line2, n_tmpl_params_list
+
+     ! Check we have a template file for each source.
+     if (n_tmpl_params_list /= comb_num) then
+        call comb_error(COMB_ERROR_CSIM_PARAM_INVALID, 'comb_csim', &
+             comment_add='require one tmpl param file for each source')
+     end if
+
+     ! Read number of template parameters (must be identical for all
+     ! template parameter files).
+     read(fileid_tmpl_param_list,*) line2, n_tmpl_params
+
+     ! Allocate space for template parameters.
+     allocate(comb_tmpl_params(1:n_tmpl_params_list, 1:n_tmpl_params), stat=fail)
+     if(fail /= 0) then
+        call s2_error(S2_ERROR_MEM_ALLOC_FAIL, 'comb_csim')
+     end if
+
+     ! Read template parameters.
+     do iparamlist = 1,n_tmpl_params_list
+
+        ! Read name of template parameter file.
+        read(fileid_tmpl_param_list,*) comb_tmpl_param_file_read
+
+        ! Open file
+        open(fileid_tmpl_param, file=comb_tmpl_param_file_read, &
+             form='formatted', status='old')
+
+        ! Ignore leading comment lines.
+        line = COMMENT_CHAR
+        do while(line(1:1) == COMMENT_CHAR)
+           read(fileid_tmpl_param,'(a)') line
+        end do
+
+        ! Read number of source positions from last line read (that is actually
+        ! not a comment line).
+        read(line, *) line2, n_tmpl_params_check
+
+        if (n_tmpl_params_check /= n_tmpl_params) then
+           call comb_error(COMB_ERROR_CSIM_PARAM_INVALID, 'comb_csim', &
+                comment_add='tmpl param files have inconsistent number of parameters')
+        end if
+
+        ! Read parameters
+        do iparam = 1,n_tmpl_params
+           read(fileid_tmpl_param,*) comb_tmpl_params(iparamlist, iparam)
+        end do
+
+        ! Close file
+        close(fileid_tmpl_param)
+
+     end do
+
+     ! Close file
+     close(fileid_tmpl_param_list)
+
+     ! Set param status.
+     params_list_present = .true.
+
+  end if
+
   ! Read template parameters from file
   if (trim(comb_tmpl_param_file) /= trim(COMB_TMPL_FILE_DEFAULT)) then
+
+     ! Check don't have individual param file and param list file.
+     if(params_list_present) then
+        call comb_error(COMB_ERROR_CSIM_PARAM_INVALID, 'comb_csim', &
+             comment_add='both param file and param list files specified')
+     end if
 
      ! Open file
      open(fileid_tmpl_param, file=comb_tmpl_param_file, &
@@ -377,14 +468,14 @@ program comb_csim
      read(line, *) line2, n_tmpl_params
 
      ! Allocate space for parameters.
-     allocate(comb_tmpl_params(1:n_tmpl_params), stat=fail)
+     allocate(comb_tmpl_params(1, 1:n_tmpl_params), stat=fail)
      if(fail /= 0) then
         call s2_error(S2_ERROR_MEM_ALLOC_FAIL, 'comb_csim')
      end if
 
      ! Read data for sources found.
      do iparam = 1,n_tmpl_params
-        read(fileid_tmpl_param,*) comb_tmpl_params(iparam)
+        read(fileid_tmpl_param,*) comb_tmpl_params(1, iparam)
      end do
 
      ! Close file
@@ -459,40 +550,74 @@ program comb_csim
   ! Generate csky
   !---------------------------------------
 
+  ! Allocate space for all templates if have param list.
+  allocate(obj(1:n_tmpl_params_list), stat=fail)
+  if(fail /= 0) then
+     call s2_error(S2_ERROR_MEM_ALLOC_FAIL, 'comb_csim')
+  end if
+
   ! Generate mother object template.
   select case (comb_type)
 
      case(COMB_TYPE_OPT(1))
-        if (params_present) then
+        if (params_list_present) then
+           do iparamlist = 1,n_tmpl_params_list
+              obj(iparamlist) = comb_obj_init(comb_tmplmap_butterfly, nside, &
+                   amplitude(iparamlist), dilation=dilation(iparamlist), &
+                   alpha=alpha(iparamlist), beta=beta(iparamlist), gamma=gamma(iparamlist), &
+                   name=trim(comb_type), param=comb_tmpl_params(iparamlist,:))
+           end do
+        elseif (params_present) then
            obj_mother = comb_obj_init(comb_tmplmap_butterfly, nside, 1.0e0, &
-                name=trim(comb_type), param=comb_tmpl_params)
+                name=trim(comb_type), param=comb_tmpl_params(1,:))
         else
            obj_mother = comb_obj_init(comb_tmplmap_butterfly, nside, 1.0e0, &
                 name=trim(comb_type))
         end if
 
      case(COMB_TYPE_OPT(2))
-        if (params_present) then
+        if (params_list_present) then
+           do iparamlist = 1,n_tmpl_params_list
+              obj(iparamlist) = comb_obj_init(comb_tmplmap_gaussian, nside, &
+                   amplitude(iparamlist), dilation=dilation(iparamlist), &
+                   alpha=alpha(iparamlist), beta=beta(iparamlist), gamma=gamma(iparamlist), &
+                   name=trim(comb_type), param=comb_tmpl_params(iparamlist,:))
+           end do
+        elseif (params_present) then
            obj_mother = comb_obj_init(comb_tmplmap_gaussian, nside, 1.0e0, &
-                name=trim(comb_type), param=comb_tmpl_params)
+                name=trim(comb_type), param=comb_tmpl_params(1,:))
         else
            obj_mother = comb_obj_init(comb_tmplmap_gaussian, nside, 1.0e0, &
                 name=trim(comb_type))
         end if
 
      case(COMB_TYPE_OPT(3))
-        if (params_present) then
+        if (params_list_present) then
+           do iparamlist = 1,n_tmpl_params_list
+              obj(iparamlist) = comb_obj_init(comb_tmplmap_mexhat, nside, &
+                   amplitude(iparamlist), dilation=dilation(iparamlist), &
+                   alpha=alpha(iparamlist), beta=beta(iparamlist), gamma=gamma(iparamlist), &
+                   name=trim(comb_type), param=comb_tmpl_params(iparamlist,:))
+           end do
+        else if (params_present) then
            obj_mother = comb_obj_init(comb_tmplmap_mexhat, nside, 1.0e0, &
-                name=trim(comb_type), param=comb_tmpl_params)
+                name=trim(comb_type), param=comb_tmpl_params(1,:))
         else
            obj_mother = comb_obj_init(comb_tmplmap_mexhat, nside, 1.0e0, &
                 name=trim(comb_type))
         end if
 
      case(COMB_TYPE_OPT(4))
-        if (params_present) then
+        if (params_list_present) then
+           do iparamlist = 1,n_tmpl_params_list
+              obj(iparamlist) = comb_obj_init(comb_tmplmap_morlet, nside, &
+                   amplitude(iparamlist), dilation=dilation(iparamlist), &
+                   alpha=alpha(iparamlist), beta=beta(iparamlist), gamma=gamma(iparamlist), &
+                   name=trim(comb_type), param=comb_tmpl_params(iparamlist,:))
+           end do
+        elseif (params_present) then
            obj_mother = comb_obj_init(comb_tmplmap_morlet, nside, 1.0e0, &
-                name=trim(comb_type), param=comb_tmpl_params)
+                name=trim(comb_type), param=comb_tmpl_params(1,:))
         else
            obj_mother = comb_obj_init(comb_tmplmap_morlet, nside, 1.0e0, &
                 name=trim(comb_type))
@@ -500,29 +625,48 @@ program comb_csim
         end if
 
      case(COMB_TYPE_OPT(5))
-        if (params_present) then
+        if (params_list_present) then
+           do iparamlist = 1,n_tmpl_params_list
+              obj(iparamlist) = comb_obj_init(comb_tmplmap_point, nside, &
+                   amplitude(iparamlist), dilation=dilation(iparamlist), &
+                   alpha=alpha(iparamlist), beta=beta(iparamlist), gamma=gamma(iparamlist), &
+                   name=trim(comb_type), param=comb_tmpl_params(iparamlist,:))
+           end do
+        elseif (params_present) then
            obj_mother = comb_obj_init(comb_tmplmap_point, nside, 1.0e0, &
-                name=trim(comb_type), param=comb_tmpl_params)
+                name=trim(comb_type), param=comb_tmpl_params(1,:))
         else
            obj_mother = comb_obj_init(comb_tmplmap_point, nside, 1.0e0, &
                 name=trim(comb_type))
         end if
 
      case(COMB_TYPE_OPT(6))
-        if (params_present) then
+        if (params_list_present) then
+           do iparamlist = 1,n_tmpl_params_list
+              obj(iparamlist) = comb_obj_init(comb_tmplmap_cos_thetaon2, nside, &
+                   amplitude(iparamlist), dilation=dilation(iparamlist), &
+                   alpha=alpha(iparamlist), beta=beta(iparamlist), gamma=gamma(iparamlist), &
+                   name=trim(comb_type), param=comb_tmpl_params(iparamlist,:))
+           end do
+        elseif (params_present) then
            obj_mother = comb_obj_init(comb_tmplmap_cos_thetaon2, nside, 1.0e0, &
-                name=trim(comb_type), param=comb_tmpl_params)
+                name=trim(comb_type), param=comb_tmpl_params(1,:))
         else
            obj_mother = comb_obj_init(comb_tmplmap_cos_thetaon2, nside, 1.0e0, &
                 name=trim(comb_type))
         end if
 
      case(COMB_TYPE_OPT(7))
-!TODO: set parameters
-!TODO: to define with different sigmas will need to defined full array rathter than through mother
-        if (params_present) then
+        if (params_list_present) then
+           do iparamlist = 1,n_tmpl_params_list
+              obj(iparamlist) = comb_obj_init(comb_tmplalm_gaussian, lmax, .false., &
+                   amplitude(iparamlist), &
+                   alpha=alpha(iparamlist), beta=beta(iparamlist), gamma=gamma(iparamlist), &
+                   name=trim(comb_type), param=comb_tmpl_params(iparamlist,:))
+           end do
+        elseif (params_present) then
            obj_mother = comb_obj_init(comb_tmplalm_gaussian, lmax, .false., 1.0e0, &
-                name=trim(comb_type), param=comb_tmpl_params)
+                name=trim(comb_type), param=comb_tmpl_params(1,:))
         else
            obj_mother = comb_obj_init(comb_tmplalm_gaussian, lmax, .false., 1.0e0, &
                 name=trim(comb_type))
@@ -535,48 +679,80 @@ program comb_csim
      
      if(cmb_status .and. noise_status) then
         
-        csky = comb_csky_init(obj_mother, comb_num, amplitude, dilation, &
-             alpha, beta, gamma, cmb, wnoise, beam, lmax, mmax)
-        
+        if (params_list_present) then
+           csky = comb_csky_init(obj, cmb, wnoise, beam, lmax, mmax)
+        else
+           csky = comb_csky_init(obj_mother, comb_num, amplitude, dilation, &
+                alpha, beta, gamma, cmb, wnoise, beam, lmax, mmax)
+        end if
+
      else if(cmb_status) then
         
-        csky = comb_csky_init(obj_mother, comb_num, amplitude, dilation, &
-             alpha, beta, gamma, cmb, beam=beam, lmax=lmax, mmax=mmax)
-        
+        if (params_list_present) then
+           csky = comb_csky_init(obj, cmb, beam=beam, lmax=lmax, mmax=mmax)
+        else
+           csky = comb_csky_init(obj_mother, comb_num, amplitude, dilation, &
+                alpha, beta, gamma, cmb, beam=beam, lmax=lmax, mmax=mmax)
+        end if
+
      else if(noise_status) then
-        
-        csky = comb_csky_init(obj_mother, comb_num, amplitude, dilation, &
-             alpha, beta, gamma, wnoise=wnoise, beam=beam, lmax=lmax, mmax=mmax)   
+
+        if (params_list_present) then
+           csky = comb_csky_init(obj, wnoise=wnoise, beam=beam, lmax=lmax, mmax=mmax)
+        else
+           csky = comb_csky_init(obj_mother, comb_num, amplitude, dilation, &
+                alpha, beta, gamma, wnoise=wnoise, beam=beam, lmax=lmax, mmax=mmax)   
+        end if
         
      else
-        
-        csky = comb_csky_init(obj_mother, comb_num, amplitude, dilation, &
-             alpha, beta, gamma, beam=beam, lmax=lmax, mmax=mmax)
-        
+
+        if (params_list_present) then
+           csky = comb_csky_init(obj, beam=beam, lmax=lmax, mmax=mmax)
+        else
+           csky = comb_csky_init(obj_mother, comb_num, amplitude, dilation, &
+                alpha, beta, gamma, beam=beam, lmax=lmax, mmax=mmax)
+        end if
+
      end if
 
   else
 
      if(cmb_status .and. noise_status) then
         
-        csky = comb_csky_init(obj_mother, comb_num, amplitude, dilation, &
-             alpha, beta, gamma, cmb, wnoise)
-        
+        if (params_list_present) then
+           csky = comb_csky_init(obj, cmb, wnoise)
+        else
+           csky = comb_csky_init(obj_mother, comb_num, amplitude, dilation, &
+                alpha, beta, gamma, cmb, wnoise)
+        end if
+
      else if(cmb_status) then
         
-        csky = comb_csky_init(obj_mother, comb_num, amplitude, dilation, &
-             alpha, beta, gamma, cmb)
-        
+        if (params_list_present) then
+           csky = comb_csky_init(obj, cmb)
+        else
+           csky = comb_csky_init(obj_mother, comb_num, amplitude, dilation, &
+                alpha, beta, gamma, cmb)
+        end if
+
      else if(noise_status) then
         
-        csky = comb_csky_init(obj_mother, comb_num, amplitude, dilation, &
-             alpha, beta, gamma, wnoise=wnoise)   
-        
+        if (params_list_present) then
+           csky = comb_csky_init(obj, wnoise=wnoise)
+        else
+           csky = comb_csky_init(obj_mother, comb_num, amplitude, dilation, &
+                alpha, beta, gamma, wnoise=wnoise)   
+        end if
+
      else
         
-        csky = comb_csky_init(obj_mother, comb_num, amplitude, dilation, &
-             alpha, beta, gamma)
-        
+        if (params_list_present) then
+           csky = comb_csky_init(obj)
+        else
+           csky = comb_csky_init(obj_mother, comb_num, amplitude, dilation, &
+                alpha, beta, gamma)
+        end if
+
      end if
 
 
@@ -602,7 +778,10 @@ program comb_csim
 
   call comb_csky_write_sky_full(csky, output_file_csky, file_type_in=file_type_int)
   call comb_csky_write_sky_obj(csky, output_file_obj, file_type_in=file_type_int)
-  call comb_obj_write_sky(obj_mother, output_file_obj_mother, file_type_in=file_type_int)
+
+  if (.not. params_list_present) then
+     call comb_obj_write_sky(obj_mother, output_file_obj_mother, file_type_in=file_type_int)
+  end if
 
   if(cmb_status) then
      call s2_cmb_write_sky(cmb, trim(output_file_cmb))
@@ -631,6 +810,8 @@ program comb_csim
   deallocate(amplitude)
   deallocate(dilation)
   deallocate(alpha, beta, gamma)
+  if (params_present) deallocate(comb_tmpl_params)
+  if(allocated(obj)) deallocate(obj)
 
 
   !----------------------------------------------------------------------------
@@ -659,7 +840,7 @@ program comb_csim
         '********************'
       write(*,'(a,a,a)') '* ', CODE_NAME, &
         '                                                           *'
-      write(*,'(a,a,a)') '* Version ', CODE_VERSION, &
+      write(*,'(a,a,a)') '* Version ', COMB_VERSION, &
         '                                                         *'
       write(*,'(a,a,a)') '* ', CODE_DESCRIPTION, &
         '                              *'
@@ -899,7 +1080,7 @@ program comb_csim
       end if
 
       ! Get comb_theta_centre_fov.
-      write(line,'(a,f4.1,a,f4.1,a)') '(Between the range ', &
+      write(line,'(a,f5.1,a,f5.1,a)') '(Between the range ', &
         COMB_THETA_CENTRE_FOV_OPT(1), ' and ', COMB_THETA_CENTRE_FOV_OPT(2), ')'
       description = concatnl('', &
         'Enter comb_theta_centre_fov (in degrees): ', &
@@ -921,6 +1102,12 @@ program comb_csim
         'Enter comb_tmpl_param_file (set to "NA" if template parameter overrides not required): ')
       comb_tmpl_param_file = parse_string(handle, 'comb_tmpl_param_file', &
         default=trim(COMB_TMPL_FILE_DEFAULT), descr=description)
+
+      ! Get comb_tmpl_param_file_list.
+      description = concatnl('', &
+        'Enter comb_tmpl_param_file_list (set to "NA" if list of template parameter overrides not required): ')
+      comb_tmpl_param_file_list = parse_string(handle, 'comb_tmpl_param_file_list', &
+        default=trim(COMB_TMPL_FILE_LIST_DEFAULT), descr=description)
 
       !---------------------------------------
 
@@ -1132,6 +1319,8 @@ program comb_csim
 
       write(*,'(a,i10)') ' comb_seed      = ', comb_seed
       write(*,'(a,a10)') ' comb_type      = ', trim(comb_type)
+      write(*,'(a,a10)') ' comb_tmpl_param_file = ', trim(comb_tmpl_param_file)
+      write(*,'(a,a10)') ' comb_tmpl_param_file_list = ', trim(comb_tmpl_param_file_list)
       write(*,'(a,i10)') ' comb_num       = ', comb_num
       write(*,'(a,f10.1)') ' comb_amp_lower = ', comb_amp_lower
       write(*,'(a,f10.1)') ' comb_amp_upper = ', comb_amp_upper

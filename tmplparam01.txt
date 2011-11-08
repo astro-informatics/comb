@@ -1,6 +1,6 @@
 # Template parameter file
 #
 nparam 2
-0.5
-0.5
+0.04
+0.04
 

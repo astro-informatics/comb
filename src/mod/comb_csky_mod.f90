@@ -231,15 +231,19 @@ module comb_csky_mod
     !   August 2004 - Written by Jason McEwen
     !--------------------------------------------------------------------------
     
-    function comb_csky_init_array(obj, cmb, wnoise) result(csky)
+    function comb_csky_init_array(obj, cmb, wnoise, beam, &
+         lmax, mmax) result(csky)
 
       type(comb_obj), intent(in) :: obj(:)
       type(s2_cmb), intent(in), optional :: cmb
       type(s2_wnoise), intent(in), optional :: wnoise
+      type(s2_pl), intent(in), optional :: beam
+      integer, intent(in), optional :: lmax, mmax
       type(comb_csky) :: csky
 
       integer :: iobj, fail
-      integer :: nside, lmax, mmax, pix_scheme
+      integer :: nside, pix_scheme
+!lmax, mmax, 
       logical :: harmonic_tmpl
       type(s2_sky) :: temp_sky
 
@@ -279,8 +283,8 @@ module comb_csky_mod
       ! are consistent.
       temp_sky = comb_obj_get_sky(obj(1))
       nside = s2_sky_get_nside(temp_sky)
-      lmax = s2_sky_get_lmax(temp_sky)
-      mmax = s2_sky_get_mmax(temp_sky)
+!      lmax = s2_sky_get_lmax(temp_sky)
+!      mmax = s2_sky_get_mmax(temp_sky)
       pix_scheme = s2_sky_get_pix_scheme(temp_sky)
       harmonic_tmpl = comb_obj_get_harmonic_tmpl(obj(1))
       call s2_sky_free(temp_sky)
@@ -290,8 +294,8 @@ module comb_csky_mod
          temp_sky = comb_obj_get_sky(obj(iobj))
          if(s2_sky_get_pix_scheme(temp_sky) /= pix_scheme &
             .or. s2_sky_get_nside(temp_sky) /= nside & 
-            .or. s2_sky_get_lmax(temp_sky) /= lmax & 
-            .or. s2_sky_get_mmax(temp_sky) /= mmax &
+!            .or. s2_sky_get_lmax(temp_sky) /= lmax & 
+!            .or. s2_sky_get_mmax(temp_sky) /= mmax &
             .or. comb_obj_get_harmonic_tmpl(obj(iobj)) .neqv. harmonic_tmpl ) then 
            call comb_error(COMB_ERROR_INIT_FAIL, 'comb_csky_init_array', &
              comment_add=&
@@ -300,6 +304,18 @@ module comb_csky_mod
          call s2_sky_free(temp_sky)
          ! Copy compact object.
          csky%obj(iobj) = comb_obj_init(obj(iobj))
+         
+         ! Apply beam if present.
+         if(present(beam)) then
+            if(present(lmax) .and. present(mmax)) then
+               call comb_obj_compute_alm(csky%obj(iobj), lmax, mmax)
+               call comb_obj_conv(csky%obj(iobj), beam)
+            else
+               call comb_error(COMB_ERROR_CSKY_LMAX_NOT_DEF, &
+                 'comb_sky_init_array')
+            end if
+         end if
+
       end do
 
       ! Set object as initialised.
