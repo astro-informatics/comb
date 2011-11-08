@@ -1,14 +1,14 @@
 !------------------------------------------------------------------------------
-! comb_tmpl_mod -- COMB library template class
+! comb_tmplalm_mod -- COMB library harmonic template class
 !
-!! Contains definitions of template functions defined on the sky to initialise
-!! comb obj objects.
+!! Contains definitions of template functions defined in harmonic
+!! space to initialise comb obj objects.
 !
 !! @author J. D. McEwen (mcewen@mrao.cam.ac.uk)
-!! @version 0.1 August 2004
+!! @version 0.1 July 2010
 !
 ! Revisions:
-!   Septmeber 2004 - Written by Jason McEwen
+!   June 2010 - Written by Jason McEwen
 !------------------------------------------------------------------------------
 
 module comb_tmplalm_mod

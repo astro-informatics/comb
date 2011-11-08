@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------
-! comb_tmpl_mod -- COMB library template class
+! comb_tmplmap_mod -- COMB library real space template class
 !
 !! Contains definitions of template functions defined on the sky to initialise
 !! comb obj objects.
