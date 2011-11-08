@@ -536,6 +536,12 @@ program comb_csim
       wnoise = s2_wnoise_init(noise_std, nside, noise_seed)    
     end if
 
+    ! If output filetype is alm the compute alms.
+    ! (Note wnoise otherwise does not have lmax and mmax defined.)
+    if (file_type == FILE_TYPE_OPT(2)) then
+       call s2_wnoise_compute_alm(wnoise, lmax, lmax)
+    end if
+
 ! Noise modelling instrumental effects, thus added after convolution
 ! with beam, i.e. don't convolve with beam here.
 !    if(beam_status) then
@@ -659,16 +665,16 @@ program comb_csim
      case(COMB_TYPE_OPT(7))
         if (params_list_present) then
            do iparamlist = 1,n_tmpl_params_list
-              obj(iparamlist) = comb_obj_init(comb_tmplalm_gaussian, lmax, .false., &
+              obj(iparamlist) = comb_obj_init(comb_tmplalm_gaussian, nside, lmax, .false., &
                    amplitude(iparamlist), &
                    alpha=alpha(iparamlist), beta=beta(iparamlist), gamma=gamma(iparamlist), &
                    name=trim(comb_type), param=comb_tmpl_params(iparamlist,:))
            end do
         elseif (params_present) then
-           obj_mother = comb_obj_init(comb_tmplalm_gaussian, lmax, .false., 1.0e0, &
+           obj_mother = comb_obj_init(comb_tmplalm_gaussian, nside, lmax, .false., 1.0e0, &
                 name=trim(comb_type), param=comb_tmpl_params(1,:))
         else
-           obj_mother = comb_obj_init(comb_tmplalm_gaussian, lmax, .false., 1.0e0, &
+           obj_mother = comb_obj_init(comb_tmplalm_gaussian, nside, lmax, .false., 1.0e0, &
                 name=trim(comb_type))
         end if
 
@@ -788,6 +794,9 @@ program comb_csim
   end if
 
   if(noise_status) then
+     if (file_type_int == S2_SKY_FILE_TYPE_ALM) then
+        call s2_wnoise_compute_alm(wnoise, lmax, mmax)
+     end if
      call s2_wnoise_write_sky_file(wnoise, output_file_wnoise)
      if(noise_full_sky) then
       call s2_wnoise_write_nobs_file(wnoise, output_file_wnoise_nobs)
@@ -841,7 +850,7 @@ program comb_csim
       write(*,'(a,a,a)') '* ', CODE_NAME, &
         '                                                           *'
       write(*,'(a,a,a)') '* Version ', COMB_VERSION, &
-        '                                                         *'
+        '                                                       *'
       write(*,'(a,a,a)') '* ', CODE_DESCRIPTION, &
         '                              *'
       write(*,'(a,a,a)') '* Written by ', CODE_AUTHOR, &

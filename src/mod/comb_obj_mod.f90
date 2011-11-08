@@ -202,6 +202,7 @@ module comb_obj_mod
     !!
     !! Variables:
     !!   - template_fun: Template function to evaluate in harmonic space.
+    !!   - nside: Healpix sky resolution.
     !!   - lmax: Harmonic band-limit.
     !!   - azisum: Logical specifying whether the template function is 
     !!     azimuthally symmetric, in which case non-zero harmonic 
@@ -226,11 +227,11 @@ module comb_obj_mod
     !   June 2010 - Written by Jason McEwen
     !--------------------------------------------------------------------------
 
-    function comb_obj_init_template_alm(template_fun, lmax, azisym, &
+    function comb_obj_init_template_alm(template_fun, nside, lmax, azisym, &
       amplitude, alpha, beta, gamma, name, param) result(obj)
 
       real(s2_sp), intent(in) :: amplitude
-      integer, intent(in) :: lmax
+      integer, intent(in) :: nside, lmax
       real(s2_sp), intent(in), optional :: alpha, beta, gamma
       logical, intent(in) :: azisym
       character(len=*), intent(in), optional :: name
@@ -252,7 +253,8 @@ module comb_obj_mod
       end if
 
       ! Initialise sky.
-      obj%sky = s2_sky_init(template_fun, lmax, lmax, azisym, param=param)
+      obj%sky = s2_sky_init(template_fun, lmax, lmax, azisym, &
+           nside=nside, param=param)
 
       ! Set object attributes.
       obj%amplitude = amplitude
