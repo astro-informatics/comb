@@ -80,7 +80,7 @@ program comb_about
         select case (trim(opt))
   
           case ('-help')
-            write(*,'(a)') 'Usage: s2_about'
+            write(*,'(a)') 'Usage: comb_about'
             stop
 
           case default
