@@ -243,7 +243,6 @@ module comb_csky_mod
 
       integer :: iobj, fail
       integer :: nside, pix_scheme
-      integer :: lmax_test, mmax_test
       logical :: harmonic_tmpl
       type(s2_sky) :: temp_sky
 
@@ -276,16 +275,6 @@ module comb_csky_mod
       ! are consistent.
       temp_sky = comb_obj_get_sky(obj(1))
       nside = s2_sky_get_nside(temp_sky)
-      if(present(lmax)) then
-         lmax_test = lmax
-      else
-         lmax_test = s2_sky_get_lmax(temp_sky)
-      end if
-      if(present(mmax)) then
-         mmax_test = mmax
-      else
-         mmax_test = s2_sky_get_mmax(temp_sky)
-      end if
       pix_scheme = s2_sky_get_pix_scheme(temp_sky)
       harmonic_tmpl = comb_obj_get_harmonic_tmpl(obj(1))
       call s2_sky_free(temp_sky)
@@ -295,8 +284,6 @@ module comb_csky_mod
          temp_sky = comb_obj_get_sky(obj(iobj))
          if(s2_sky_get_pix_scheme(temp_sky) /= pix_scheme &
             .or. s2_sky_get_nside(temp_sky) /= nside & 
-            .or. s2_sky_get_lmax(temp_sky) /= lmax_test & 
-            .or. s2_sky_get_mmax(temp_sky) /= mmax_test &
             .or. comb_obj_get_harmonic_tmpl(obj(iobj)) .neqv. harmonic_tmpl ) then 
            call comb_error(COMB_ERROR_INIT_FAIL, 'comb_csky_init_array', &
              comment_add=&
@@ -308,8 +295,13 @@ module comb_csky_mod
          
          ! Apply beam if present.
          if(present(beam)) then
-            call comb_obj_compute_alm(csky%obj(iobj), lmax_test, mmax_test)
-            call comb_obj_conv(csky%obj(iobj), beam)
+            if(present(lmax) .and. present(mmax)) then
+               call comb_obj_compute_alm(csky%obj(iobj), lmax, mmax)
+               call comb_obj_conv(csky%obj(iobj), beam)
+            else
+               call comb_error(COMB_ERROR_CSKY_LMAX_NOT_DEF, &
+                    'comb_sky_init_array')
+            end if
          end if
 
       end do
