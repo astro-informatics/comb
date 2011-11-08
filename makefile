@@ -1,5 +1,4 @@
 # Makefile for comb
-# Jason McEwen
 
 
 # ======== OPTIONS ========
@@ -21,7 +20,7 @@ OPT = $(OPTPGPLOT) -m64
 
 # ======== LINKS ========
 
-PROGDIR = /Users/jdm/Src
+PROGDIR = ..
 
 HPIXDIR = $(PROGDIR)/Healpix
 HPIXLIB = $(HPIXDIR)/lib
