@@ -79,7 +79,7 @@ program comb_csim
 
   ! comb_type
   character(len=S2_STRING_LEN) :: comb_type
-  integer, parameter :: COMB_TYPE_OPT_NUM = 7
+  integer, parameter :: COMB_TYPE_OPT_NUM = 8
   character(len=S2_STRING_LEN), parameter :: &
     COMB_TYPE_OPT(COMB_TYPE_OPT_NUM) = (/ &
     'butterfly        ', &
@@ -88,7 +88,8 @@ program comb_csim
     'morlet           ', &
     'point            ', &
     'cos_thetaon2     ', &
-    'harmonic_gaussian' &
+    'harmonic_gaussian', &
+    'bubble           ' &
     /)
   character(len=S2_STRING_LEN), parameter :: &
     COMB_TYPE_DEFAULT = COMB_TYPE_OPT(1)
@@ -675,6 +676,22 @@ program comb_csim
                 name=trim(comb_type), param=comb_tmpl_params(1,:))
         else
            obj_mother = comb_obj_init(comb_tmplalm_gaussian, nside, lmax, .false., 1.0e0, &
+                name=trim(comb_type))
+        end if
+
+     case(COMB_TYPE_OPT(8))
+        if (params_list_present) then
+           do iparamlist = 1,n_tmpl_params_list
+              obj(iparamlist) = comb_obj_init(comb_tmplmap_bubble, nside, &
+                   amplitude(iparamlist), dilation=dilation(iparamlist), &
+                   alpha=alpha(iparamlist), beta=beta(iparamlist), gamma=gamma(iparamlist), &
+                   name=trim(comb_type), param=comb_tmpl_params(iparamlist,:))
+           end do
+        elseif (params_present) then
+           obj_mother = comb_obj_init(comb_tmplmap_bubble, nside, 1.0e0, &
+                name=trim(comb_type), param=comb_tmpl_params(1,:))
+        else
+           obj_mother = comb_obj_init(comb_tmplmap_bubble, nside, 1.0e0, &
                 name=trim(comb_type))
         end if
 

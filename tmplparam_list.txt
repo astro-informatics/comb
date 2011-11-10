@@ -1,7 +1,7 @@
 # Template parameter file list
 #
 nfiles 5
-nparam 2
+nparam 4
 tmplparam01.txt
 tmplparam02.txt
 tmplparam03.txt

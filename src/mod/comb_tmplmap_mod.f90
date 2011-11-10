@@ -31,7 +31,8 @@ module comb_tmplmap_mod
     comb_tmplmap_butterfly, &
     comb_tmplmap_gaussian, &
     comb_tmplmap_mexhat, &
-    comb_tmplmap_morlet
+    comb_tmplmap_morlet, &
+    comb_tmplmap_bubble
 
 
   !----------------------------------------------------------------------------
@@ -303,6 +304,81 @@ module comb_tmplmap_mod
 
     end function comb_tmplmap_morlet
 
+
+    !--------------------------------------------------------------------------
+    ! comb_tmplmap_bubble
+    !
+    !! Template function defined on the sphere.  
+    !! Continuous bubble template.
+    !!
+    !! Variables:
+    !!   - theta: Theta spherical coordiante in range [0,pi].
+    !!   - phi: Phi spherical coordinate in range [0,2pi).
+    !!   - [param]: Optional parameter array.
+    !
+    !! @author J. D. McEwen
+    !! @version 0.1 November 2011
+    !
+    ! Revisions:
+    !   November 2011 - Written by Jason McEwen
+    !--------------------------------------------------------------------------
+   
+    function comb_tmplmap_bubble(theta, phi, param) result(val)
+
+      real(s2_sp), intent(in) :: theta, phi
+      real(s2_sp), intent(in), optional :: param(:)
+      real(s2_sp) :: val
+
+      real(s2_sp) :: z0
+      real(s2_sp) :: zc
+      real(s2_sp) :: theta_c
+      real(s2_sp) :: theta_0
+      real(s2_sp) :: c1, c0
+      real(s2_sp) :: k, ts
+
+      ! Define default parameters.
+      z0 = 1e0
+      zc = 0.2e0 * z0
+      theta_c =  20e0 / 180e0 * PI
+      theta_0 = 1.1e0 * theta_c
+
+      ! Parse input parameters.
+      if(present(param)) then
+        if(size(param) /= 4) then
+          call comb_error(COMB_ERROR_TMPL_PARAM_INVALID, 'comb_tmplmap_bubble')
+        end if
+        z0 = param(1)
+        zc = param(2)
+        theta_c = param(3) / 180e0 * PI
+        theta_0 = param(4) / 180e0 * PI
+      end if
+
+      ! Check parameters valid.
+      if (theta_0 < theta_c) then
+         call comb_error(COMB_ERROR_TMPL_PARAM_INVALID, &
+              'comb_tmplmap_bubble', &
+              comment_add='theta_0 < theta_c')
+      end if
+
+      ! Define derived parameter and compute template value.
+      c1 = (z0 - zc ) / (1e0 - cos(theta_c))
+      c0 = z0 - c1
+      val = c0 + c1 * cos(theta)
+
+      ! Compute Schwartz step modulated template.
+      if (theta < theta_c) then
+         k = 1e0
+      elseif (theta > theta_0) then
+         k = 0e0
+      else
+         ts = (theta - theta_c) / (theta_0 - theta_c)
+         k = exp(-1e0/(1e0-ts**2)) * exp(1e0)
+      end if
+
+      ! Apply Schwartz step.
+      val = val * k
+
+    end function comb_tmplmap_bubble
 
 
 end module comb_tmplmap_mod
