@@ -47,8 +47,16 @@ program comb_csim
   character(len=S2_STRING_LEN) :: line, line2
   type(paramfile_handle) :: handle
 
-  integer, parameter :: NUM_COMMENT_LINES_CLT_FILE = 29   ! Value for WMAP1
-!  integer, parameter :: NUM_COMMENT_LINES_CLT_FILE = 45   ! Value for WMAP3
+#ifdef WMAP1
+  integer, parameter :: NUM_COMMENT_LINES_CLT_FILE = 29 !WMAP1
+#endif
+#ifdef WMAP3
+  integer, parameter :: NUM_COMMENT_LINES_CLT_FILE = 45   ! Value for WMAP3
+#endif
+#ifdef WMAP7
+  integer, parameter :: NUM_COMMENT_LINES_CLT_FILE = 0   ! Value for WMAP7
+#endif
+
   integer, parameter :: NUM_COMMENT_LINES_BEAM_FILE = 8 
 
   real(s2_sp) :: TOL = 1e-5
