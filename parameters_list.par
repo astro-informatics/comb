@@ -24,19 +24,20 @@ comb_gamma_grid_num = 1
 # Primordial CMB parameters
 cmb_status = .true.
 cmb_seed = 1
-cmb_cl_file = data_in/wmap_lcdm_pl_model_yr1_v1.txt
+cmb_cl_file = data_in/wmap_lcdm_pl_model_wmap7baoh0_CAMB.dat
 
 # Beam parameters
 beam_status = .true.
 beam_gaussian = .true.
-beam_fwhm = 13.0e0
+beam_fwhm = 13.2e0
 beam_cl_file = data_in/map_w1_ampl_bl_yr1_v1.txt
 
 # Noise parameters
 noise_status = .true.
 noise_full_sky = .false.
 noise_seed = 1
-noise_std = 0.05
+noise_std = 0.0695
+# 0.0695 = sqrt(0.004827070021056)
 noise_sigma0 = 2.0e0
 noise_nobs_file = data_in/wmap_w1_cleanimap_yr1_v1.fits
 noise_nobs_extension = 2
