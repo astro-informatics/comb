@@ -4,9 +4,9 @@
 # August 2004
 
 # Healpix parameters
-nside = 256
-lmax = 512
-mmax = 512
+nside = 128
+lmax = 256
+mmax = 256
 
 # Compact object parameters
 comb_seed = 1
@@ -14,8 +14,8 @@ comb_type = bubble
 #comb_tmpl_param_file = tmplparam.txt
 comb_tmpl_param_file_list = tmplparam_list.txt
 comb_num = 5
-comb_amp_lower = 0.5e0
-comb_amp_upper = 0.5e0
+comb_amp_lower = 0.1e0
+comb_amp_upper = 0.4e0
 comb_dil_lower = 1.0e0
 comb_dil_upper = 1.0e0
 comb_dil_grid_num = 1
