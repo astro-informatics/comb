@@ -35,7 +35,7 @@ program comb_objgen
   integer :: nside = 64, lmax = 128, mmax = 128, fail, fileid = 32
 
   character(len=S2_STRING_LEN) :: comb_type
-  integer, parameter :: COMB_TYPE_OPT_NUM = 6
+  integer, parameter :: COMB_TYPE_OPT_NUM = 7
   character(len=S2_STRING_LEN), parameter :: &
     COMB_TYPE_OPT(COMB_TYPE_OPT_NUM) = (/ &
     'butterfly   ', &
@@ -43,7 +43,8 @@ program comb_objgen
     'mexhat      ', &
     'morlet      ', &
     'point       ', &
-    'cos_thetaon2'  &
+    'cos_thetaon2',  &
+    'bubble      ' &
     /)
   character(len=S2_STRING_LEN), parameter :: &
     COMB_TYPE_DEFAULT = COMB_TYPE_OPT(1)
@@ -59,10 +60,15 @@ program comb_objgen
   real(s2_sp), allocatable :: dilation_array(:)
   real(s2_sp), allocatable :: amplitude(:)
   real(s2_sp), allocatable :: alpha(:), beta(:), gamma(:)
+  real(s2_sp), allocatable :: source_size(:)
 
   type(comb_csky) :: csky
   type(comb_obj) :: obj_mother
+  type(comb_obj), allocatable :: obj(:)
   type(s2_pl) :: beam
+
+  logical :: include_size = .false.
+  real(s2_sp) :: bubble_params(1:4)
 
 
   !---------------------------------------
@@ -95,6 +101,7 @@ program comb_objgen
   allocate(gamma(1:n_source), stat=fail)
   allocate(dilation_array(1:n_source), stat=fail)
   dilation_array(1:n_source) = dilation
+  allocate(source_size(1:n_source), stat=fail)
   if(fail /= 0) then
      call s2_error(S2_ERROR_MEM_ALLOC_FAIL, 'comb_objgen')
   end if
@@ -106,6 +113,7 @@ program comb_objgen
      read(fileid,*) line, alpha(i_source)
      read(fileid,*) line, beta(i_source)
      read(fileid,*) line, gamma(i_source)
+     if(include_size) read(fileid,*) line, source_size(i_source)
   end do
 
 
@@ -149,15 +157,39 @@ program comb_objgen
         obj_mother = comb_obj_init(comb_tmplmap_cos_thetaon2, nside, 1.0e0, &
              name=trim(comb_type))
 
+     case(COMB_TYPE_OPT(7))
+        allocate(obj(1:n_source), stat=fail)
+        if(fail /= 0) then
+           call s2_error(S2_ERROR_MEM_ALLOC_FAIL, 'comb_objgen')
+        end if
+        do i_source = 1,n_source
+           bubble_params(1) = 1.0
+           bubble_params(2) = 0.2
+           bubble_params(3) = source_size(i_source) / PI * 180
+           bubble_params(4) = bubble_params(3) * 1.1
+           obj(i_source) = comb_obj_init(comb_tmplmap_bubble, nside, &
+                amplitude(i_source), dilation=1.0, &
+                alpha=alpha(i_source), beta=beta(i_source), gamma=gamma(i_source), &
+                name=trim(comb_type), param=bubble_params)
+        end do
+        
   end select
 
   ! Generate csky.
   if(beam_status) then
-     csky = comb_csky_init(obj_mother, n_source, amplitude, &
-          dilation_array, alpha, beta, gamma, beam=beam)
+     if (comb_type == COMB_TYPE_OPT(7)) then
+        csky = comb_csky_init(obj, beam=beam)
+     else
+        csky = comb_csky_init(obj_mother, n_source, amplitude, &
+             dilation_array, alpha, beta, gamma, beam=beam)
+     end if
   else
-     csky = comb_csky_init(obj_mother, n_source, amplitude, &
-          dilation_array, alpha, beta, gamma)
+     if (comb_type == COMB_TYPE_OPT(7)) then
+        csky = comb_csky_init(obj)
+     else
+        csky = comb_csky_init(obj_mother, n_source, amplitude, &
+             dilation_array, alpha, beta, gamma)
+     end if
   end if
 
 
@@ -173,11 +205,13 @@ program comb_objgen
   !---------------------------------------
 
   call comb_csky_free(csky)
-  call comb_obj_free(obj_mother)
+  if (comb_type /= COMB_TYPE_OPT(7)) call comb_obj_free(obj_mother)
   if(beam_status) call s2_pl_free(beam)
   deallocate(amplitude)
   deallocate(dilation_array)
   deallocate(alpha, beta, gamma)
+  deallocate(source_size)
+  if (allocated(obj)) deallocate(obj)
 
 
   !----------------------------------------------------------------------------
@@ -231,6 +265,7 @@ program comb_objgen
             write(*,'(a)') '                   [-nside nside]'
             write(*,'(a)') '                   [-lmax lmax (only if beam present)]'
             write(*,'(a)') '                   [-beam beam_fwhm (optional)]'
+            write(*,'(a)') '                   [-include_size include_size (optional)]'
             stop
           
           case ('-inp')
@@ -255,6 +290,9 @@ program comb_objgen
           case ('-beam')
             read(arg,*) beam_fwhm
             beam_status = .true.
+
+          case ('-include_size')
+            read(arg,*) include_size
 
           case default
             print '("Unknown option ",a," ignored")', trim(opt)
