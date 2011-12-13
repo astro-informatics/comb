@@ -113,7 +113,10 @@ program comb_objgen
      read(fileid,*) line, alpha(i_source)
      read(fileid,*) line, beta(i_source)
      read(fileid,*) line, gamma(i_source)
-     if(include_size) read(fileid,*) line, source_size(i_source)
+     if(include_size) then
+        read(fileid,*) line, source_size(i_source)
+        read(fileid,*) line ! Skip significance level.
+     end if
   end do
 
 
