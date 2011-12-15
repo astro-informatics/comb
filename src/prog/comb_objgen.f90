@@ -116,6 +116,7 @@ program comb_objgen
      if(include_size) then
         read(fileid,*) line, source_size(i_source)
         read(fileid,*) line ! Skip significance level.
+        read(fileid,*) line ! Skip significance radius.
      end if
   end do
 
