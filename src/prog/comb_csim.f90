@@ -141,6 +141,18 @@ program comb_csim
   integer :: comb_gamma_grid_num
   integer, parameter :: COMB_GAMMA_GRID_NUM_DEFAULT = 5
 
+  ! comb_low_noise_test
+  logical :: comb_low_noise_test
+  logical, parameter :: COMB_LOW_NOISE_TEST_DEFAULT = .false.
+  real(s2_sp), parameter :: THETA_LOW_NOISE_DEGREES = 57.7
+  real(s2_sp), parameter :: PHI_LOW_NOISE_DEGREES = 99.2
+
+  ! comb_hi_noise_test
+  logical :: comb_hi_noise_test
+  logical, parameter :: COMB_HI_NOISE_TEST_DEFAULT = .false.
+  real(s2_sp), parameter :: THETA_HI_NOISE_DEGREES = 56.6
+  real(s2_sp), parameter :: PHI_HI_NOISE_DEGREES = 193.0
+
   ! comb_theta_centre_fov
   real(s2_sp) :: comb_theta_centre_fov
   real(s2_sp), parameter :: COMB_THETA_CENTRE_FOV_OPT(2) = (/ 0.0e0, 180.0e0 /) 
@@ -371,7 +383,8 @@ program comb_csim
   call comb_csim_param_gen()
 
   ! Centre object if only one.
-  if(comb_num == 1) then
+  if(comb_num == 1 .and. &
+       (.not. comb_low_noise_test) .and. (.not. comb_hi_noise_test)) then
      alpha = 0.0e0
      beta = pi/2.0e0
      gamma = 0.0e0
@@ -1003,6 +1016,22 @@ program comb_csim
               comment_add='comb_num invalid')
       end if
 
+      ! Get comb_low_noise_test.
+      description = concatnl(&
+        & "", &
+        & "Enter comb_low_noise_test: ")
+      comb_low_noise_test = parse_lgt(handle, 'comb_low_noise_test', &
+        default=COMB_LOW_NOISE_TEST_DEFAULT, descr=description)
+      if (comb_low_noise_test) comb_num = 1
+
+      ! Get comb_hi_noise_test.
+      description = concatnl(&
+        & "", &
+        & "Enter comb_hi_noise_test: ")
+      comb_hi_noise_test = parse_lgt(handle, 'comb_hi_noise_test', &
+        default=COMB_HI_NOISE_TEST_DEFAULT, descr=description)
+      if (comb_hi_noise_test) comb_num = 1
+
       ! Get comb_seed.
       description = concatnl('', &
         'Enter comb_seed: ')
@@ -1426,18 +1455,26 @@ program comb_csim
          dilation(iobj) = s2_distn_sample_uniform(comb_seed, comb_dil_lower, &
               comb_dil_upper)
 
-         if(abs(comb_theta_centre_fov) < TOL) then
-            alpha(iobj) = s2_distn_sample_uniform(comb_seed, 0.0e0, 2*pi)
-            beta(iobj) = s2_distn_sample_uniform(comb_seed, 0.0e0, pi)
-         else
-            xmax_sgp = sqrt(2.0) * tan(comb_theta_centre_fov/4.0)
-            xtmp = s2_distn_sample_uniform(comb_seed, -xmax_sgp, xmax_sgp)
-            ytmp = s2_distn_sample_uniform(comb_seed, -xmax_sgp, xmax_sgp)
-            rtmp = sqrt(xtmp**2 + ytmp**2)
-            phi0 = atan2(ytmp, xtmp)
-            theta0 = 2 * atan(rtmp/2.0)
-            alpha(iobj) = mod(phi0, 2*pi)
-            beta(iobj) = mod(theta0, pi)
+         if (comb_low_noise_test) then
+            alpha(iobj) = PHI_LOW_NOISE_DEGREES / 180.0 * PI
+            beta(iobj) = THETA_LOW_NOISE_DEGREES / 180.0 * PI
+         elseif (comb_hi_noise_test) then
+            alpha(iobj) = PHI_HI_NOISE_DEGREES / 180.0 * PI
+            beta(iobj) = THETA_HI_NOISE_DEGREES / 180.0 * PI
+         else   
+            if(abs(comb_theta_centre_fov) < TOL) then
+               alpha(iobj) = s2_distn_sample_uniform(comb_seed, 0.0e0, 2*pi)
+               beta(iobj) = s2_distn_sample_uniform(comb_seed, 0.0e0, pi)
+            else           
+               xmax_sgp = sqrt(2.0) * tan(comb_theta_centre_fov/4.0)
+               xtmp = s2_distn_sample_uniform(comb_seed, -xmax_sgp, xmax_sgp)
+               ytmp = s2_distn_sample_uniform(comb_seed, -xmax_sgp, xmax_sgp)
+               rtmp = sqrt(xtmp**2 + ytmp**2)
+               phi0 = atan2(ytmp, xtmp)
+               theta0 = 2 * atan(rtmp/2.0)
+               alpha(iobj) = mod(phi0, 2*pi)
+               beta(iobj) = mod(theta0, pi)
+            end if
          end if
 
          gamma(iobj) = s2_distn_sample_uniform(comb_seed, comb_gamma_lower, &
