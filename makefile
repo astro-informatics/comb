@@ -15,7 +15,9 @@ FC      = gfortran
 ifneq ($(USEPGPLOT),yes)
   OPTPGPLOT     = -DNO_PGPLOT
 endif
-OPT = $(OPTPGPLOT) -m64 -O3 -DWMAP7 -DCOMB_VERSION=\"1.0b2\" -DCOMB_BUILD=\"`svnversion -n .`\" 
+OPT = $(OPTPGPLOT) -m64 -O3 \
+      -DWMAP7 \
+      -DCOMB_VERSION=\"1.0b2\" -DCOMB_BUILD=\"`svnversion -n .`\" 
 #OPT = $(OPTPGPLOT) -m64 -g3 -ggdb -DCOMB_VERSION=\"1.0b2\" -DCOMB_BUILD=\"`svnversion -n .`\"   
 
 
@@ -79,7 +81,7 @@ ifeq ($(FC),f95)
 else ifeq ($(FC),g95)
   PPFLAGS = -cpp $(OPT)
 else ifeq ($(FC),gfortran)
-  PPFLAGS = -x f95-cpp-input $(OPT)
+  PPFLAGS = -cpp $(OPT)
 endif
 
 
