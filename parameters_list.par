@@ -4,9 +4,9 @@
 # August 2004
 
 # Healpix parameters
-nside = 128
-lmax = 256
-mmax = 256
+nside = 512
+lmax = 1024
+mmax = 1024
 
 # Compact object parameters
 comb_seed = 1
@@ -14,8 +14,8 @@ comb_type = bubble
 #comb_tmpl_param_file = tmplparam.txt
 comb_tmpl_param_file_list = tmplparam_list.txt
 comb_num = 5
-comb_amp_lower = 0.1e0
-comb_amp_upper = 0.1e0
+comb_amp_lower = 0.1e3
+comb_amp_upper = 0.1e3
 comb_dil_lower = 1.0e0
 comb_dil_upper = 1.0e0
 comb_dil_grid_num = 1
@@ -36,10 +36,12 @@ beam_cl_file = data_in/map_w1_ampl_bl_yr1_v1.txt
 noise_status = .true.
 noise_full_sky = .false.
 noise_seed = 1
-noise_std = 0.0695
-# 0.0695 = sqrt(0.004827070021056)
-noise_sigma0 = 2.0e0
-noise_nobs_file = data_in/wmap_w1_cleanimap_yr1_v1.fits
+noise_std = 69.5
+# 0.0695mK = sqrt(0.004827070021056)
+noise_sigma0 = 6549
+# 2mK = 2000uK
+noise_nobs_file = data_in/wmap_band_imap_r9_7yr_W_v4.fits
+#noise_nobs_file = data_in/wmap_w1_cleanimap_yr1_v1.fits
 noise_nobs_extension = 2
 
 # Output files

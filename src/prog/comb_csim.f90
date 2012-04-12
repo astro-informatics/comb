@@ -112,13 +112,13 @@ program comb_csim
 
   ! comb_amp_lower
   real(s2_sp) :: comb_amp_lower
-  real(s2_sp), parameter :: COMB_AMP_LOWER_OPT(2) = (/ 0.0e0, 5.0e0 /) 
-  real(s2_sp), parameter :: COMB_AMP_LOWER_DEFAULT = 0.1e0
+  real(s2_sp), parameter :: COMB_AMP_LOWER_OPT(2) = (/ 0.0e0, 5.0e4 /) 
+  real(s2_sp), parameter :: COMB_AMP_LOWER_DEFAULT = 0.1e4
 
   ! comb_amp_upper
   real(s2_sp) :: comb_amp_upper
-  real(s2_sp), parameter :: COMB_AMP_UPPER_OPT(2) = (/ 0.0e0, 5.0e0 /) 
-  real(s2_sp), parameter :: COMB_AMP_UPPER_DEFAULT = 2.0e0
+  real(s2_sp), parameter :: COMB_AMP_UPPER_OPT(2) = (/ 0.0e0, 5.0e4 /) 
+  real(s2_sp), parameter :: COMB_AMP_UPPER_DEFAULT = 2.0e4
  
   ! comb_dil_lower
   real(s2_sp) :: comb_dil_lower
