@@ -205,7 +205,7 @@ program comb_objgen
 
   call comb_csky_write_sky_obj(csky, filename_out)
   if (plot_all) then
-     call comb_csky_write_sky_objs(csky, filename_out(1:len(trim(filename_out))-4))
+     call comb_csky_write_sky_objs(csky, filename_out(1:len(trim(filename_out))-5))
   end if
 
 
