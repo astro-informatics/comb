@@ -70,6 +70,8 @@ program comb_objgen
   logical :: include_size = .false.
   real(s2_sp) :: bubble_params(1:4)
 
+  logical :: plot_all = .false.
+
 
   !---------------------------------------
   ! Parse input parameters
@@ -202,6 +204,9 @@ program comb_objgen
   !---------------------------------------
 
   call comb_csky_write_sky_obj(csky, filename_out)
+  if (plot_all) then
+     call comb_csky_write_sky_objs(csky, filename_out(1:len(trim(filename_out))-4))
+  end if
 
 
   !---------------------------------------
@@ -270,6 +275,7 @@ program comb_objgen
             write(*,'(a)') '                   [-lmax lmax (only if beam present)]'
             write(*,'(a)') '                   [-beam beam_fwhm (optional)]'
             write(*,'(a)') '                   [-include_size include_size (optional)]'
+            write(*,'(a)') '                   [-plot_all plot_all (optional)]'
             stop
           
           case ('-inp')
@@ -297,6 +303,9 @@ program comb_objgen
 
           case ('-include_size')
             read(arg,*) include_size
+
+          case ('-plot_all')
+            read(arg,*) plot_all
 
           case default
             print '("Unknown option ",a," ignored")', trim(opt)

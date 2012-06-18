@@ -41,6 +41,7 @@ module comb_csky_mod
     comb_csky_free, &
     comb_csky_write_param, &
     comb_csky_write_sky_obj, &
+    comb_csky_write_sky_objs, &
     comb_csky_write_sky_full, &
     comb_csky_write_sky_cmb, &
     comb_csky_write_sky_wnoise, &
@@ -667,6 +668,71 @@ module comb_csky_mod
       call s2_sky_write_file(csky%sky_obj, filename, file_type, comment)
 
     end subroutine comb_csky_write_sky_obj
+
+
+    !--------------------------------------------------------------------------
+    ! comb_csky_write_sky_objs
+    !
+    !! Write individual objects making up csky compact object to fits files.
+    !!
+    !! Variables:
+    !!   - csky: Csky containing sky_obj to be written to file.
+    !!   - filename_prefix: Prefix of the output fits filenames.
+    !!   - [comment]: Optional additional comment to be added to the fits file
+    !!     header.
+    !!   - [file_type_in]: Optional specifying type of file to write.
+    !
+    !! @author J. D. McEwen
+    !
+    ! Revisions:
+    !   June 2012 - Written by Jason McEwen
+    !--------------------------------------------------------------------------
+
+    subroutine comb_csky_write_sky_objs(csky, filename_prefix, comment, &
+         file_type_in)
+
+      type(comb_csky), intent(inout) :: csky
+      character(len=*), intent(in) :: filename_prefix
+      character(len=*), intent(in), optional :: comment
+      integer, intent(in), optional :: file_type_in
+
+      integer :: file_type = S2_SKY_FILE_TYPE_MAP
+      character(len=S2_STRING_LEN) :: filename
+      integer :: iobj
+      type(s2_sky) :: temp_sky
+
+      if(present(file_type_in)) file_type = file_type_in
+      
+      ! Check object initialised.
+      if(.not. csky%init) then
+        call comb_error(COMB_ERROR_NOT_INIT, 'comb_csky_write_sky_obj')
+      end if 
+
+      do iobj = 1,csky%nobj
+
+         ! Get temporary sky.
+         temp_sky = comb_obj_get_sky(csky%obj(iobj))
+
+         ! Ensure sky computed in required space (map or alms).
+         select case (file_type)
+         case(S2_SKY_FILE_TYPE_MAP)
+            call s2_sky_compute_map(temp_sky)
+         case(S2_SKY_FILE_TYPE_ALM)
+            call s2_sky_compute_alm(temp_sky)
+         end select
+
+         ! Set filename.
+         write(filename, '(a,a,i3.3,a)') trim(filename_prefix), '_iobj', iobj, '.fits'
+
+         ! Write file.
+         call s2_sky_write_file(temp_sky, filename, file_type, comment)
+
+         ! Free temporary sky.
+         call s2_sky_free(temp_sky)
+
+      end do
+
+    end subroutine comb_csky_write_sky_objs
 
 
     !--------------------------------------------------------------------------
