@@ -119,6 +119,7 @@ program comb_objgen
         read(fileid,*) line, source_size(i_source)
         read(fileid,*) line ! Skip significance level.
         read(fileid,*) line ! Skip significance radius.
+        read(fileid,*) line ! Skip mask overlap.
      end if
   end do
 
