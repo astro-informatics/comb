@@ -1,0 +1,56 @@
+# COMB_CSIM input parmater file
+#
+# Jason McEwen
+# August 2004
+
+# Healpix parameters
+nside = 512
+lmax = 1024
+mmax = 1024
+
+# Compact object parameters
+comb_seed = 1
+comb_type = texture
+#comb_tmpl_param_file = tmplparam.txt
+comb_tmpl_param_file_list = tmplparam_list_texture.txt
+comb_num = 5
+comb_amp_lower = 0.1e3
+comb_amp_upper = 0.1e3
+comb_dil_lower = 1.0e0
+comb_dil_upper = 1.0e0
+comb_dil_grid_num = 1
+comb_gamma_grid_num = 1
+
+# Primordial CMB parameters
+cmb_status = .true.
+cmb_seed = 1
+cmb_cl_file = data_in/wmap_lcdm_pl_model_wmap7baoh0_CAMB.dat
+
+# Beam parameters
+beam_status = .true.
+beam_gaussian = .true.
+beam_fwhm = 13.2e0
+beam_cl_file = data_in/map_w1_ampl_bl_yr1_v1.txt
+
+# Noise parameters
+noise_status = .true.
+noise_full_sky = .false.
+noise_seed = 1
+noise_std = 69.5
+# 0.0695mK = sqrt(0.004827070021056)
+noise_sigma0 = 6549
+# 2mK = 2000uK
+noise_nobs_file = data_in/wmap_band_imap_r9_7yr_W_v4.fits
+#noise_nobs_file = data_in/wmap_w1_cleanimap_yr1_v1.fits
+noise_nobs_extension = 2
+
+# Output files
+output_file_csky = data_out/csky.fits
+output_file_obj = data_out/obj.fits
+output_file_obj_mother = data_out/obj_mother.fits
+output_file_cmb = data_out/cmb.fits
+output_file_wnoise = data_out/wnoise.fits 
+output_file_wnoise_nobs = data_out/wnoise_nobs.fits 
+output_file_wnoise_std = data_out/wnoise_std.fits 
+output_file_param = data_out/param_out.par
+

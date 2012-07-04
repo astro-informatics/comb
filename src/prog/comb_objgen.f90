@@ -35,7 +35,7 @@ program comb_objgen
   integer :: nside = 64, lmax = 128, mmax = 128, fail, fileid = 32
 
   character(len=S2_STRING_LEN) :: comb_type
-  integer, parameter :: COMB_TYPE_OPT_NUM = 7
+  integer, parameter :: COMB_TYPE_OPT_NUM = 8
   character(len=S2_STRING_LEN), parameter :: &
     COMB_TYPE_OPT(COMB_TYPE_OPT_NUM) = (/ &
     'butterfly   ', &
@@ -44,7 +44,8 @@ program comb_objgen
     'morlet      ', &
     'point       ', &
     'cos_thetaon2',  &
-    'bubble      ' &
+    'bubble      ', &
+    'texture     ' &
     /)
   character(len=S2_STRING_LEN), parameter :: &
     COMB_TYPE_DEFAULT = COMB_TYPE_OPT(1)
@@ -69,6 +70,7 @@ program comb_objgen
 
   logical :: include_size = .false.
   real(s2_sp) :: bubble_params(1:4)
+  real(s2_sp) :: texture_params(1:1)
 
   logical :: plot_all = .false.
 
@@ -179,6 +181,20 @@ program comb_objgen
                 alpha=alpha(i_source), beta=beta(i_source), gamma=gamma(i_source), &
                 name=trim(comb_type), param=bubble_params)
         end do
+
+     case(COMB_TYPE_OPT(8))
+        allocate(obj(1:n_source), stat=fail)
+        if(fail /= 0) then
+           call s2_error(S2_ERROR_MEM_ALLOC_FAIL, 'comb_objgen')
+        end if
+        do i_source = 1,n_source
+           texture_params(1) = source_size(i_source) / PI * 180
+           obj(i_source) = comb_obj_init(comb_tmplmap_texture, nside, &
+                amplitude(i_source), dilation=1.0, &
+                alpha=alpha(i_source), beta=beta(i_source), gamma=gamma(i_source), &
+                name=trim(comb_type), param=texture_params)
+        end do
+
         
   end select
 

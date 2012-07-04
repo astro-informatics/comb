@@ -32,7 +32,8 @@ module comb_tmplmap_mod
     comb_tmplmap_gaussian, &
     comb_tmplmap_mexhat, &
     comb_tmplmap_morlet, &
-    comb_tmplmap_bubble
+    comb_tmplmap_bubble, &
+    comb_tmplmap_texture
 
 
   !----------------------------------------------------------------------------
@@ -379,6 +380,74 @@ module comb_tmplmap_mod
       val = val * k
 
     end function comb_tmplmap_bubble
+
+
+    !--------------------------------------------------------------------------
+    ! comb_tmplmap_texture
+    !
+    !! Template function defined on the sphere.  
+    !! Texture template with Gaussian tails.
+    !!
+    !! Variables:
+    !!   - theta: Theta spherical coordiante in range [0,pi].
+    !!   - phi: Phi spherical coordinate in range [0,2pi).
+    !!   - [param]: Optional parameter array.
+    !
+    !! @author J. D. McEwen
+    !! @version 0.1 July 2012
+    !
+    ! Revisions:
+    !   July 2012 - Written by Jason McEwen
+    !--------------------------------------------------------------------------
+   
+    function comb_tmplmap_texture(theta, phi, param) result(val)
+
+      real(s2_sp), intent(in) :: theta, phi
+      real(s2_sp), intent(in), optional :: param(:)
+      real(s2_sp) :: val
+
+      real(s2_sp) :: theta_c
+      real(s2_sp) :: theta_hm
+      real(s2_sp) :: sigma_sqd
+      real(s2_sp) :: Ag
+
+      ! Define default parameters.
+      theta_c =  20e0 / 180e0 * PI
+
+      ! Parse input parameters.
+      if(present(param)) then
+        if(size(param) /= 1) then
+          call comb_error(COMB_ERROR_TMPL_PARAM_INVALID, 'comb_tmplmap_texture')
+        end if
+        theta_c = param(1) / 180e0 * PI
+      end if
+
+      ! Check parameters valid.
+      if (theta_c < 0 .or. theta_c > 2.0*pi) then
+         call comb_error(COMB_ERROR_TMPL_PARAM_INVALID, &
+              'comb_tmplmap_texture', &
+              comment_add='theta_0 < theta_c')
+      end if
+
+      ! Define derived parameter and compute template value.
+      theta_hm = sqrt(3.0) * theta_c / 2.0;
+
+      ! Compute template value.
+      if (theta <= theta_hm) then
+
+         ! Compute central region of texture.
+         val = 1.0 / sqrt(1.0 + 4.0*(theta/theta_c)**2);
+
+      else
+
+         ! Compute Gaussian wing.
+         sigma_sqd = theta_c**2;
+         Ag = 1.0 * exp(3.0/8.0) / 2.0;
+         val =  Ag * exp(-theta**2 / (2*sigma_sqd));
+
+      end if
+
+    end function comb_tmplmap_texture
 
 
 end module comb_tmplmap_mod

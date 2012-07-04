@@ -1,0 +1,10 @@
+# Template parameter file list
+#
+nfiles 5
+nparam 1
+tmplparam01_texture.txt
+tmplparam02_texture.txt
+tmplparam03_texture.txt
+tmplparam04_texture.txt
+tmplparam05_texture.txt
+
