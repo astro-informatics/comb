@@ -200,14 +200,14 @@ program comb_objgen
 
   ! Generate csky.
   if(beam_status) then
-     if (comb_type == COMB_TYPE_OPT(7)) then
+     if (comb_type == COMB_TYPE_OPT(7) .or. comb_type == COMB_TYPE_OPT(8)) then
         csky = comb_csky_init(obj, beam=beam)
      else
         csky = comb_csky_init(obj_mother, n_source, amplitude, &
              dilation_array, alpha, beta, gamma, beam=beam)
      end if
   else
-     if (comb_type == COMB_TYPE_OPT(7)) then
+     if (comb_type == COMB_TYPE_OPT(7) .or. comb_type == COMB_TYPE_OPT(8)) then
         csky = comb_csky_init(obj)
      else
         csky = comb_csky_init(obj_mother, n_source, amplitude, &
@@ -231,7 +231,9 @@ program comb_objgen
   !---------------------------------------
 
   call comb_csky_free(csky)
-  if (comb_type /= COMB_TYPE_OPT(7)) call comb_obj_free(obj_mother)
+  if (comb_type /= COMB_TYPE_OPT(7) .and. comb_type /= COMB_TYPE_OPT(8)) then
+     call comb_obj_free(obj_mother)
+  end if
   if(beam_status) call s2_pl_free(beam)
   deallocate(amplitude)
   deallocate(dilation_array)
