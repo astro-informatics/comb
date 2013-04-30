@@ -122,6 +122,8 @@ program comb_objgen
         read(fileid,*) line ! Skip significance level.
         read(fileid,*) line ! Skip significance radius.
         read(fileid,*) line ! Skip mask overlap.
+        read(fileid,*) line ! Skip lo size prior overlap.
+        read(fileid,*) line ! Skip hi size overlap.
      end if
   end do
 
