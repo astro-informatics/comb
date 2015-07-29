@@ -17,38 +17,42 @@ VERSION
      Release 1.0, 1 July 2008
 
 AUTHORS
-     J. D. McEwen (mcewen@mrao.cam.ac.uk)
+     J. D. McEwen (http://www.jasonmcewen.org)
 
 REFERENCE
      If you use the code to produce published works please reference
      the download site http://www.mrao.cam.ac.uk/~jdm57/ and our
-     related paper:
+     related papers:
+
+       J. D. McEwen, S. M. Feeney, M. C. Johnson, and
+       H. V. Peiris. Optimal filters for detecting cosmic bubble
+       collisions. Phys. Rev. D., 85(10):103502, 2012
+       (arXiv:1202.2861).
+
        J. D. McEwen, M. P. Hobson, and A. N. Lasenby. Optimal filters
-       on the sphere. IEEE Trans. Sig. Proc., in press, 2006
+       on the sphere. IEEE Trans. Sig. Proc., 56(8):3813-3823, 2008 
        (astro-ph/0612688).
 
 DOCUMENTATION
-     See doc/index_comb.html
+     See doc/index.html
 
 REQUIREMENTS
-     S2 (http://www.mrao.cam.ac.uk/~jdm57/)
+     S2 (http://www.jasonmcewen.org/codes.html)
      HEALPix (http://healpix.jpl.nasa.gov/)
      CFITSIO (http://heasarc.gsfc.nasa.gov/docs/software/fitsio/)
 
 INSTALLATION
-     See doc/index_comb.html
+     See doc/index.html
 
 DOWNLOAD
-     http://www.mrao.cam.ac.uk/~jdm57/
-     Data files at:
-       http://www.mrao.cam.ac.uk/~jdm57/data/comb-1.0-data.tar.gz
+     http://www.jasonmcewen.org
 
 SUPPORT
-     Contact Jason McEwen (mcewen@mrao.cam.ac.uk)
+     Contact Jason McEwen 
 
 NOTE
      The package is still under development
-     Please report problems/bugs by email to: mcewen@mrao.cam.ac.uk
+     Please report problems/bugs by email to Jason McEwen
 
 LICENSE 
      COMB package to provide functionality to support the
